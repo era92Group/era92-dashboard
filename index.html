@@ -227,8 +227,9 @@ function fetchSheetJSONP(id, tab) {
         if (response.status === 'error') { reject(new Error(tab + ': ' + (response.errors||[]).map(e=>e.message).join(', '))); return; }
         const table = response.table;
         const headers = table.cols.map(c => c.label || c.id);
-        const rows = table.rows.map(row => {
+        const rows = (table.rows || []).map(row => {
           const obj = {};
+          if (!row || !row.c) return obj;
           row.c.forEach((cell, i) => {
             if (!headers[i]) return;
             const v = cell ? (cell.v !== undefined && cell.v !== null ? cell.v : null) : null;
@@ -302,24 +303,41 @@ async function loadAllData() {
 
   const errors=[];
 
-  // KPI sheets via JSONP (bypasses CORS)
-  const kpiTabs={Elevate:'elevate',Employment:'employment',Microfinance:'microfinance',Hub:'hub','era92 Marketing ':'marketing','era92 Group':'group'};
-  await Promise.all(Object.entries(kpiTabs).map(async([tab,key])=>{
-    try{raw[key]=await fetchSheetJSONP(SHEETS.kpi.id,tab)}
-    catch(e){console.warn(tab,e);errors.push(tab);raw[key]=[]}
-  }));
+  try {
+    // KPI sheets via JSONP (bypasses CORS)
+    const kpiTabs={Elevate:'elevate',Employment:'employment',Microfinance:'microfinance',Hub:'hub','era92 Marketing ':'marketing','era92 Group':'group'};
+    await Promise.all(Object.entries(kpiTabs).map(async([tab,key])=>{
+      try{
+        const data = await fetchSheetJSONP(SHEETS.kpi.id,tab);
+        raw[key] = data || [];
+        console.log(tab + ': loaded ' + raw[key].length + ' rows');
+      }
+      catch(e){console.warn(tab,e);errors.push(tab);raw[key]=[]}
+    }));
 
-  // Revenue via JSONP
-  try{raw.revenue=await fetchRevenueJSONP(SHEETS.revenue.id,'Sheet1')}
-  catch(e){console.warn('Revenue',e);errors.push('Revenue');raw.revenue=[]}
+    // Revenue via JSONP
+    try{
+      raw.revenue = await fetchRevenueJSONP(SHEETS.revenue.id,'Sheet1');
+      console.log('Revenue: loaded ' + raw.revenue.length + ' rows');
+    }
+    catch(e){console.warn('Revenue',e);errors.push('Revenue');raw.revenue=[]}
 
-  if(errors.length)eb.textContent='Could not load: '+errors.join(', ')+'. Ensure sheets are published to web.';
-  if(errors.length)eb.style.display='block';
+    if(errors.length){
+      eb.textContent='Could not load: '+errors.join(', ')+'. Go to each Google Sheet → File → Share → Publish to web → Click Publish.';
+      eb.style.display='block';
+    }
 
-  document.getElementById('last-refresh').textContent=new Date().toLocaleString();
-  populateFilters();
-  applyFilters();
-  ld.classList.add('hidden');
+    document.getElementById('last-refresh').textContent=new Date().toLocaleString();
+    try { populateFilters(); } catch(e) { console.error('Filter error:', e); }
+    try { applyFilters(); } catch(e) { console.error('Render error:', e); }
+  } catch(e) {
+    console.error('Fatal load error:', e);
+    eb.textContent = 'Dashboard error: ' + e.message;
+    eb.style.display = 'block';
+  } finally {
+    // ALWAYS hide spinner
+    ld.classList.add('hidden');
+  }
 }
 
 // ========== FILTERS ==========
