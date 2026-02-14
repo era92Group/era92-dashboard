@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>era92 Group — Live KPI Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+<style>
+:root {
+  --primary: #1B3A5C; --accent: #E8632B; --green: #28a745; --red: #dc3545;
+  --purple: #8172B3; --gold: #F39C12; --bg: #f8f9fa; --card: #fff;
+  --text: #212529; --muted: #6c757d; --border: #e0e4e8; --gap: 16px; --radius: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+
+.header{background:linear-gradient(135deg,var(--primary) 0%,#2C5F8A 100%);color:#fff;padding:22px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.header h1{font-size:21px;font-weight:700} .header .sub{font-size:12px;opacity:.8;margin-top:2px}
+.live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600}
+.live-dot{width:8px;height:8px;background:#2ECC71;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .4s}
+.loading-overlay.hidden{opacity:0;pointer-events:none}
+.spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{margin-top:14px;color:var(--muted);font-size:14px}
+.error-banner{background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:10px 24px;text-align:center;font-size:13px;display:none}
+
+.filter-bar{background:var(--card);border-bottom:1px solid var(--border);padding:10px 32px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.filter-bar label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.filter-group{display:flex;align-items:center;gap:5px}
+.filter-group select{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;color:var(--text);cursor:pointer;min-width:110px}
+.filter-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,99,43,.12)}
+.refresh-btn{margin-left:auto;padding:6px 14px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+.refresh-btn:hover{background:#244c73}
+
+.tabs{display:flex;gap:0;padding:0 32px;background:var(--card);border-bottom:2px solid var(--border);overflow-x:auto}
+.tab{padding:12px 20px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;user-select:none}
+.tab:hover{color:var(--text)} .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.content{padding:20px 32px;max-width:1440px;margin:0 auto}
+.section{display:none} .section.active{display:block}
+
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--gap);margin-bottom:var(--gap)}
+.kpi-card{background:var(--card);border-radius:var(--radius);padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--border)}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.kpi-value{font-size:26px;font-weight:700;color:var(--primary)}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-bottom:var(--gap)}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap);margin-bottom:var(--gap)}
+.chart-card{background:var(--card);border-radius:var(--radius);padding:18px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--border)}
+.chart-card h3{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)}
+.chart-card canvas{max-height:280px}
+.insight{background:#FFF8F0;border-left:4px solid var(--accent);padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:var(--gap);font-size:13px;line-height:1.7}
+.insight strong{color:var(--accent)}
+
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{text-align:left;padding:8px 10px;border-bottom:2px solid #dee2e6;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;white-space:nowrap}
+.data-table th:hover{color:var(--text);background:#f8f9fa}
+.data-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0}
+.data-table tr:hover td{background:#f8f9fa}
+
+.footer{text-align:center;padding:16px;font-size:11px;color:var(--muted)}
+.footer a{color:var(--accent)}
+
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}.header,.filter-bar,.content{padding-left:14px;padding-right:14px}.kpi-row{grid-template-columns:repeat(2,1fr)}}
+@media print{.filter-bar,.tabs,.refresh-btn{display:none}.section{display:block!important;page-break-before:always}}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading"><div class="spinner"></div><div class="loading-text">Pulling live data from Google Sheets...</div></div>
+<div class="error-banner" id="error-banner"></div>
+
+<div class="header">
+  <div><h1>era92 Group — Live Dashboard</h1><div class="sub">Auto-refreshes from Google Sheets · Updated every time you open it</div></div>
+  <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-group"><label>Week</label><select id="f-week" onchange="applyFilters()"><option value="all">All</option></select></div>
+  <div class="filter-group"><label>Month</label><select id="f-month" onchange="applyFilters()"><option value="all">All</option></select></div>
+  <div class="filter-group"><label>Quarter</label><select id="f-quarter" onchange="applyFilters()"><option value="all">All</option></select></div>
+  <div class="filter-group"><label>Year</label><select id="f-year" onchange="applyFilters()"><option value="all">All</option></select></div>
+  <div class="filter-group"><label>Location / Brand</label><select id="f-location" onchange="applyFilters()"><option value="all">All</option></select></div>
+  <button class="refresh-btn" onclick="loadAllData()">&#8635; Refresh</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="overview">Overview</div>
+  <div class="tab" data-tab="revenue">Revenue</div>
+  <div class="tab" data-tab="elevate">Elevate</div>
+  <div class="tab" data-tab="employment">Employment</div>
+  <div class="tab" data-tab="microfinance">Microfinance</div>
+  <div class="tab" data-tab="hub">Hub</div>
+  <div class="tab" data-tab="marketing">Marketing</div>
+</div>
+
+<div class="content">
+
+<!-- OVERVIEW -->
+<div class="section active" id="sec-overview">
+  <div class="kpi-row" id="kpi-row"></div>
+  <div class="insight" id="insight-overview"></div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Total Revenue by Brand (Q1 2026)</h3><canvas id="ov-revbrand"></canvas></div>
+    <div class="chart-card"><h3>Weekly Revenue Trend</h3><canvas id="ov-revtrend"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Enrollment by Location</h3><canvas id="ov-enrollment"></canvas></div>
+    <div class="chart-card"><h3>Admissions — Gender Split</h3><canvas id="ov-gender"></canvas></div>
+  </div>
+</div>
+
+<!-- REVENUE -->
+<div class="section" id="sec-revenue">
+  <div class="kpi-row" id="rev-kpi-row"></div>
+  <div class="insight" id="insight-revenue"></div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Revenue by Brand</h3><canvas id="rev-brand"></canvas></div>
+    <div class="chart-card"><h3>Weekly Revenue Trend by Brand</h3><canvas id="rev-trend"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Brand Revenue Share</h3><canvas id="rev-share"></canvas></div>
+    <div class="chart-card"><h3>Week-over-Week Revenue Growth</h3><canvas id="rev-growth"></canvas></div>
+  </div>
+  <div class="chart-card" style="margin-bottom:16px"><h3>Revenue Detail Table</h3><div id="rev-table" style="overflow-x:auto"></div></div>
+</div>
+
+<!-- ELEVATE -->
+<div class="section" id="sec-elevate">
+  <div class="insight" id="insight-elevate"></div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Weekly Enrollment by Hub</h3><canvas id="el-enroll"></canvas></div>
+    <div class="chart-card"><h3>Weekly Admissions by Hub</h3><canvas id="el-admit"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Gender Split (Admissions)</h3><canvas id="el-gender"></canvas></div>
+    <div class="chart-card"><h3>Refugee Enrollment</h3><canvas id="el-refugee"></canvas></div>
+  </div>
+  <div class="chart-card" style="margin-bottom:16px"><h3>Elevate Data Table</h3><div id="el-table" style="overflow-x:auto"></div></div>
+</div>
+
+<!-- EMPLOYMENT -->
+<div class="section" id="sec-employment">
+  <div class="insight" id="insight-employment"></div>
+  <div class="grid2">
+    <div class="chart-card"><h3>New Placements by Week</h3><canvas id="em-place"></canvas></div>
+    <div class="chart-card"><h3>Income Earned (UGX)</h3><canvas id="em-income"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Active Projects</h3><canvas id="em-projects"></canvas></div>
+    <div class="chart-card"><h3>Cumulative Placements</h3><canvas id="em-cumul"></canvas></div>
+  </div>
+</div>
+
+<!-- MICROFINANCE -->
+<div class="section" id="sec-microfinance">
+  <div class="insight" id="insight-mf"></div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Collection Goal vs Actual (UGX)</h3><canvas id="mf-coll"></canvas></div>
+    <div class="chart-card"><h3>Repayment Rate (%)</h3><canvas id="mf-rate"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Loans Disbursed & Borrowers</h3><canvas id="mf-loans"></canvas></div>
+    <div class="chart-card"><h3>Portfolio Risk</h3><canvas id="mf-risk"></canvas></div>
+  </div>
+</div>
+
+<!-- HUB -->
+<div class="section" id="sec-hub">
+  <div class="insight" id="insight-hub"></div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Weekly Revenue (UGX)</h3><canvas id="hub-rev"></canvas></div>
+    <div class="chart-card"><h3>Events & Attendance</h3><canvas id="hub-events"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Prospects & Partnerships</h3><canvas id="hub-prospects"></canvas></div>
+    <div class="chart-card"><h3>Social Media & Bookings</h3><canvas id="hub-social"></canvas></div>
+  </div>
+</div>
+
+<!-- MARKETING -->
+<div class="section" id="sec-marketing">
+  <div class="insight" id="insight-mk"></div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Weekly Reach by Brand</h3><canvas id="mk-reach"></canvas></div>
+    <div class="chart-card"><h3>New Followers by Brand</h3><canvas id="mk-followers"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="chart-card"><h3>Posts Published</h3><canvas id="mk-posts"></canvas></div>
+    <div class="chart-card"><h3>Creative — Leads Pipeline</h3><canvas id="mk-leads"></canvas></div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">era92 Group Live Dashboard · Data from <a href="https://docs.google.com/spreadsheets/d/1fch4Cy5sj1VQ_iaD2NK0SoOE1EKjsr_7YmZSUt3-ngU" target="_blank">Weekly KPIs</a> · <a href="https://docs.google.com/spreadsheets/d/1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI" target="_blank">Revenue Tracker</a> · Last refreshed: <span id="last-refresh">—</span></div>
+
+<script>
+// ========== CONFIG ==========
+const SHEETS = {
+  kpi: { id: '1fch4Cy5sj1VQ_iaD2NK0SoOE1EKjsr_7YmZSUt3-ngU', tabs: ['Elevate','Employment','Microfinance','Hub','era92 Marketing ','era92 Group'] },
+  revenue: { id: '1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI', tabs: ['Sheet1'] }
+};
+const C = ['#E8632B','#1B3A5C','#2ECC71','#8172B3','#F39C12','#E74C3C','#3498DB','#1ABC9C'];
+
+// ========== STATE ==========
+let raw = { elevate:[], employment:[], microfinance:[], hub:[], marketing:[], group:[], revenue:[] };
+let flt = {};
+let charts = {};
+
+// ========== CSV PARSER ==========
+function* csvGen(csv) {
+  let row=[], field='', inQ=false;
+  for(let i=0;i<csv.length;i++){
+    const ch=csv[i];
+    if(ch==='"'){if(inQ&&csv[i+1]==='"'){field+='"';i++}else inQ=!inQ}
+    else if(ch===','&&!inQ){row.push(field.trim());field=''}
+    else if((ch==='\n'||ch==='\r')&&!inQ){row.push(field.trim());field='';if(row.some(c=>c!==''))yield row;row=[];if(ch==='\r'&&csv[i+1]==='\n')i++}
+    else field+=ch;
+  }
+  row.push(field.trim());if(row.some(c=>c!==''))yield row;
+}
+function toObjects(csv, headerOverride) {
+  const rows=[...csvGen(csv)]; if(rows.length<2)return[];
+  const headers=headerOverride||rows[0];
+  const startRow=headerOverride?0:1;
+  return rows.slice(startRow).map(row=>{
+    const o={};
+    headers.forEach((h,i)=>{if(!h)return;const v=(row[i]||'').trim();const n=parseFloat(v.replace(/,/g,''));o[h]=v===''?null:(!isNaN(n)&&v!==''?n:v)});
+    return o;
+  }).filter(o=>Object.values(o).some(v=>v!==null));
+}
+
+function sheetUrl(id, tab) { return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`; }
+
+async function fetchSheet(id, tab) {
+  const r=await fetch(sheetUrl(id,tab));
+  if(!r.ok)throw new Error(`${tab}: ${r.status}`);
+  return await r.text();
+}
+
+// ========== REVENUE CSV PARSER (custom headers) ==========
+function parseRevenue(csv) {
+  const rows=[...csvGen(csv)];
+  // Skip row 0 (totals) and row 1 (headers), data starts row 2
+  const headers=['Dates','Week','Quarter','Year','Enterprise','Revenue','Revenue2','New Donors','Retention','CompletionRisk','PlacementRisk'];
+  return rows.slice(2).map(row=>{
+    const o={};
+    headers.forEach((h,i)=>{
+      const v=(row[i]||'').trim();
+      const n=parseFloat(v.replace(/,/g,''));
+      o[h]=v===''?null:(!isNaN(n)&&v!==''?n:v);
+    });
+    return o;
+  }).filter(o=>o.Enterprise&&o.Revenue!==null);
+}
+
+// ========== LOAD ==========
+async function loadAllData() {
+  const ld=document.getElementById('loading');
+  const eb=document.getElementById('error-banner');
+  ld.classList.remove('hidden'); eb.style.display='none';
+
+  const errors=[];
+
+  // KPI sheets
+  const kpiTabs={Elevate:'elevate',Employment:'employment',Microfinance:'microfinance',Hub:'hub','era92 Marketing ':'marketing','era92 Group':'group'};
+  await Promise.all(Object.entries(kpiTabs).map(async([tab,key])=>{
+    try{const csv=await fetchSheet(SHEETS.kpi.id,tab);raw[key]=toObjects(csv)}
+    catch(e){errors.push(tab);raw[key]=[]}
+  }));
+
+  // Revenue
+  try{const csv=await fetchSheet(SHEETS.revenue.id,'Sheet1');raw.revenue=parseRevenue(csv)}
+  catch(e){errors.push('Revenue');raw.revenue=[]}
+
+  if(errors.length)eb.textContent='Could not load: '+errors.join(', ')+'. Ensure sheets are published to web.';
+  if(errors.length)eb.style.display='block';
+
+  document.getElementById('last-refresh').textContent=new Date().toLocaleString();
+  populateFilters();
+  applyFilters();
+  ld.classList.add('hidden');
+}
+
+// ========== FILTERS ==========
+function populateFilters(){
+  const all=[...raw.elevate,...raw.employment,...raw.hub,...raw.revenue];
+  popSel('f-week',[...new Set(all.map(r=>r.Week).filter(Boolean))].sort((a,b)=>a-b),v=>`Week ${v}`);
+  popSel('f-quarter',[...new Set(all.map(r=>r.Quarter).filter(Boolean))].sort(),v=>`Q${v}`);
+  popSel('f-year',[...new Set(all.map(r=>r.Year).filter(Boolean))].sort(),v=>v);
+  const months=[...new Set(raw.microfinance.map(r=>r.Month).filter(Boolean))].sort((a,b)=>a-b);
+  popSel('f-month',months,v=>`Month ${v}`);
+  const locs=[...new Set([
+    ...raw.elevate.map(r=>r['Hub Location']),
+    ...raw.revenue.map(r=>r.Enterprise)
+  ].filter(Boolean))].sort();
+  popSel('f-location',locs,v=>v);
+}
+function popSel(id,vals,fn){const s=document.getElementById(id);const c=s.value;while(s.options.length>1)s.remove(1);vals.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=fn(v);s.appendChild(o)});s.value=c}
+function gf(id){const v=document.getElementById(id).value;return v==='all'?null:(parseFloat(v)||v)}
+
+function filterR(rows,wf='Week',lf='Hub Location'){
+  const w=gf('f-week'),q=gf('f-quarter'),y=gf('f-year'),l=gf('f-location');
+  return rows.filter(r=>{
+    if(w!==null&&r[wf]!==w)return false;
+    if(q!==null&&r.Quarter!==q)return false;
+    if(y!==null&&r.Year!==y)return false;
+    if(l!==null&&r[lf]&&r[lf]!==l)return false;
+    return true;
+  });
+}
+
+function applyFilters(){
+  flt.elevate=filterR(raw.elevate);
+  flt.employment=filterR(raw.employment,'Week','Program');
+  flt.microfinance=filterR(raw.microfinance,'Week','Branch');
+  flt.hub=filterR(raw.hub,'Week',null);
+  flt.marketing=filterR(raw.marketing,'Week','Enterprise');
+  flt.group=filterR(raw.group,'Week','Program');
+  flt.revenue=filterR(raw.revenue,'Week','Enterprise');
+  renderAll();
+}
+
+// ========== HELPERS ==========
+function fmt(v){if(v==null)return'0';if(Math.abs(v)>=1e9)return(v/1e9).toFixed(1)+'B';if(Math.abs(v)>=1e6)return(v/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return(v/1e3).toFixed(1)+'K';return v.toLocaleString()}
+function sum(a,f){return a.reduce((s,r)=>s+(r[f]||0),0)}
+function grp(a,f){const g={};a.forEach(r=>{const k=r[f]||'Unknown';if(!g[k])g[k]=[];g[k].push(r)});return g}
+function wkV(a){return[...new Set(a.map(r=>r.Week))].filter(Boolean).sort((a,b)=>a-b)}
+function wkL(a){return wkV(a).map(w=>`Wk ${w}`)}
+function mk(id,cfg){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;charts[id]=new Chart(ctx,cfg)}
+function kpi(label,value,sub){return`<div class="kpi-card"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-sub">${sub}</div></div>`}
+
+// ========== TABS ==========
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById('sec-'+t.dataset.tab).classList.add('active');
+}));
+
+// ========== RENDER ALL ==========
+function renderAll(){renderOverview();renderRevenue();renderElevate();renderEmployment();renderMicrofinance();renderHub();renderMarketing()}
+
+// ========== OVERVIEW ==========
+function renderOverview(){
+  const el=flt.elevate,em=flt.employment,mf=flt.microfinance,hub=flt.hub,rev=flt.revenue;
+  const tRev=sum(rev,'Revenue'), tEnroll=sum(el,'New youth enrolled this week'), tPlace=sum(em,'New placements secured this week');
+  const tIncome=sum(em,'Total income earned this week'), tDisb=sum(mf,'Total Loans Disbursed this week'), hubRev=sum(hub,'Weekly Revenue');
+
+  document.getElementById('kpi-row').innerHTML=[
+    kpi('Group Revenue','UGX '+fmt(tRev),'All brands combined'),
+    kpi('New Enrollments',fmt(tEnroll),'Elevate program'),
+    kpi('Job Placements',fmt(tPlace),'Employment'),
+    kpi('Income Earned','UGX '+fmt(tIncome),'From placements'),
+    kpi('Loans Disbursed','UGX '+fmt(tDisb),'Microfinance'),
+    kpi('Hub Revenue','UGX '+fmt(hubRev),'era92 Hub')
+  ].join('');
+
+  document.getElementById('insight-overview').innerHTML=`<strong>Group Overview:</strong> UGX ${fmt(tRev)} total revenue across all brands. ${fmt(tEnroll)} youth enrolled, ${tPlace} job placements securing UGX ${fmt(tIncome)} income. Microfinance disbursed UGX ${fmt(tDisb)}.`;
+
+  // Revenue by brand (horizontal bar)
+  const byBrand=grp(rev,'Enterprise');
+  const brands=Object.keys(byBrand).sort((a,b)=>sum(byBrand[b],'Revenue')-sum(byBrand[a],'Revenue'));
+  mk('ov-revbrand',{type:'bar',data:{labels:brands,datasets:[{label:'Revenue (UGX)',data:brands.map(b=>sum(byBrand[b],'Revenue')),backgroundColor:brands.map((_,i)=>C[i%C.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fmt(v)}}}}});
+
+  // Weekly revenue trend
+  const wks=wkV(rev), wl=wkL(rev);
+  const weeklyRev=wks.map(w=>sum(rev.filter(r=>r.Week===w),'Revenue'));
+  mk('ov-revtrend',{type:'line',data:{labels:wl,datasets:[{label:'Revenue',data:weeklyRev,borderColor:'#E8632B',backgroundColor:'#E8632B20',fill:true,tension:.3,pointRadius:5,borderWidth:2.5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}}});
+
+  // Enrollment
+  const elWks=wkV(el),elWl=wkL(el),byLoc=grp(el,'Hub Location'),locs=Object.keys(byLoc).sort();
+  mk('ov-enrollment',{type:'bar',data:{labels:elWl,datasets:locs.map((l,i)=>({label:l,data:elWks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'New youth enrolled this week')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:10,font:{size:11}}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+
+  // Gender
+  const tF=elWks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Female admitted'));
+  const tM=elWks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Male admitted'));
+  mk('ov-gender',{type:'bar',data:{labels:elWl,datasets:[{label:'Female',data:tF,backgroundColor:'#8172B3',borderRadius:4},{label:'Male',data:tM,backgroundColor:'#1B3A5C',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+}
+
+// ========== REVENUE ==========
+function renderRevenue(){
+  const rev=flt.revenue;
+  const byBrand=grp(rev,'Enterprise');
+  const brands=Object.keys(byBrand).sort((a,b)=>sum(byBrand[b],'Revenue')-sum(byBrand[a],'Revenue'));
+  const tRev=sum(rev,'Revenue');
+  const topBrand=brands[0]||'N/A';
+  const topRev=brands.length?sum(byBrand[topBrand],'Revenue'):0;
+  const wks=wkV(rev);
+
+  document.getElementById('rev-kpi-row').innerHTML=[
+    kpi('Total Revenue','UGX '+fmt(tRev),'All brands'),
+    kpi('Top Brand',topBrand,'UGX '+fmt(topRev)),
+    kpi('Brands Tracked',brands.length,'Active enterprises'),
+    kpi('Weeks of Data',wks.length,'Q1 2026')
+  ].join('');
+
+  document.getElementById('insight-revenue').innerHTML=`<strong>Revenue Performance:</strong> ${topBrand} leads with UGX ${fmt(topRev)} (${tRev?((topRev/tRev)*100).toFixed(0):'0'}% of total). ${brands.length} brands generating UGX ${fmt(tRev)} combined across ${wks.length} weeks.`;
+
+  // Revenue by brand bar
+  mk('rev-brand',{type:'bar',data:{labels:brands,datasets:[{label:'Revenue',data:brands.map(b=>sum(byBrand[b],'Revenue')),backgroundColor:brands.map((_,i)=>C[i%C.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fmt(v)}}}}});
+
+  // Weekly trend by brand
+  const wl=wks.map(w=>`Wk ${w}`);
+  mk('rev-trend',{type:'line',data:{labels:wl,datasets:brands.map((b,i)=>({label:b,data:wks.map(w=>sum((byBrand[b]||[]).filter(r=>r.Week===w),'Revenue')),borderColor:C[i%C.length],tension:.3,pointRadius:4,borderWidth:2}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:10}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}}});
+
+  // Share donut
+  mk('rev-share',{type:'doughnut',data:{labels:brands,datasets:[{data:brands.map(b=>sum(byBrand[b],'Revenue')),backgroundColor:brands.map((_,i)=>C[i%C.length]),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,cutout:'55%',plugins:{legend:{position:'right',labels:{usePointStyle:true,font:{size:10}}},tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return`${ctx.label}: UGX ${fmt(ctx.parsed)} (${((ctx.parsed/t)*100).toFixed(1)}%)`}}}}}}});
+
+  // WoW growth
+  const weeklyTotals=wks.map(w=>sum(rev.filter(r=>r.Week===w),'Revenue'));
+  const growth=weeklyTotals.map((v,i)=>i===0?0:weeklyTotals[i-1]?((v-weeklyTotals[i-1])/weeklyTotals[i-1]*100):0);
+  mk('rev-growth',{type:'bar',data:{labels:wl,datasets:[{label:'WoW Growth %',data:growth,backgroundColor:growth.map(v=>v>=0?'#2ECC71':'#E74C3C'),borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
+
+  // Table
+  const tbl=document.getElementById('rev-table');
+  if(rev.length){
+    let h='<table class="data-table"><thead><tr><th>Week</th><th>Enterprise</th><th>Revenue (UGX)</th><th>Dates</th></tr></thead><tbody>';
+    rev.sort((a,b)=>(a.Week||0)-(b.Week||0)).forEach(r=>{h+=`<tr><td>Wk ${r.Week||'—'}</td><td>${r.Enterprise||'—'}</td><td>${r.Revenue?'UGX '+r.Revenue.toLocaleString():'—'}</td><td>${r.Dates||'—'}</td></tr>`});
+    h+='</tbody></table>';tbl.innerHTML=h;
+  }
+}
+
+// ========== ELEVATE ==========
+function renderElevate(){
+  const el=flt.elevate,wks=wkV(el),wl=wkL(el),byLoc=grp(el,'Hub Location'),locs=Object.keys(byLoc).sort();
+  const tE=sum(el,'New youth enrolled this week'),tA=sum(el,'New youth admitted this week'),tR=sum(el,'Number of Refugees');
+  document.getElementById('insight-elevate').innerHTML=`<strong>Elevate:</strong> ${fmt(tE)} enrolled, ${fmt(tA)} admitted, ${tR} refugees across ${locs.length} hubs.`;
+
+  mk('el-enroll',{type:'line',data:{labels:wl,datasets:locs.map((l,i)=>({label:l,data:wks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'New youth enrolled this week')),borderColor:C[i],tension:.3,pointRadius:5,borderWidth:2.5}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+  mk('el-admit',{type:'bar',data:{labels:wl,datasets:locs.map((l,i)=>({label:l,data:wks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'New youth admitted this week')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+  const tF=wks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Female admitted'));
+  const tM=wks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Male admitted'));
+  mk('el-gender',{type:'bar',data:{labels:wl,datasets:[{label:'Female',data:tF,backgroundColor:'#8172B3',borderRadius:4},{label:'Male',data:tM,backgroundColor:'#1B3A5C',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+  mk('el-refugee',{type:'bar',data:{labels:wl,datasets:[{label:'Refugees',data:wks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Refugees')),backgroundColor:'#E8632B',borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  const t=document.getElementById('el-table');
+  if(el.length){const cols=['Week','Hub Location','New youth enrolled this week','New youth admitted this week','Number of Female admitted','Number of Male admitted','Number of Refugees'];let h='<table class="data-table"><thead><tr>'+cols.map(c=>`<th>${c.replace('this week','').trim()}</th>`).join('')+'</tr></thead><tbody>';el.forEach(r=>{h+='<tr>'+cols.map(c=>`<td>${r[c]!=null?(typeof r[c]==='number'?r[c].toLocaleString():r[c]):'—'}</td>`).join('')+'</tr>'});h+='</tbody></table>';t.innerHTML=h}
+}
+
+// ========== EMPLOYMENT ==========
+function renderEmployment(){
+  const em=flt.employment,wks=wkV(em),wl=wkL(em),byLoc=grp(em,'Program'),locs=Object.keys(byLoc).sort();
+  const tp=sum(em,'New placements secured this week'),ti=sum(em,'Total income earned this week');
+  document.getElementById('insight-employment').innerHTML=`<strong>Employment:</strong> ${tp} placements, UGX ${fmt(ti)} income across ${locs.length} locations.`;
+
+  mk('em-place',{type:'bar',data:{labels:wl,datasets:locs.map((l,i)=>({label:l,data:wks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'New placements secured this week')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+  mk('em-income',{type:'line',data:{labels:wl,datasets:[{label:'Income',data:wks.map(w=>sum(em.filter(r=>r.Week===w),'Total income earned this week')),borderColor:'#2ECC71',backgroundColor:'#2ECC7130',fill:true,tension:.3,pointRadius:5,borderWidth:2.5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}}});
+  mk('em-projects',{type:'bar',data:{labels:wl,datasets:locs.map((l,i)=>({label:l,data:wks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'Number of active projects this week')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+  mk('em-cumul',{type:'line',data:{labels:wl,datasets:locs.map((l,i)=>{let c=0;return{label:l,data:wks.map(w=>{c+=sum((byLoc[l]||[]).filter(r=>r.Week===w),'New placements secured this week');return c}),borderColor:C[i],tension:.3,pointRadius:5,borderWidth:2.5}})},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+}
+
+// ========== MICROFINANCE ==========
+function renderMicrofinance(){
+  const mf=flt.microfinance,wks=wkV(mf),wl=wkL(mf);
+  const td=sum(mf,'Total Loans Disbursed this week'),tc=sum(mf,'Actual Weekly repayment collected');
+  document.getElementById('insight-mf').innerHTML=`<strong>Microfinance:</strong> UGX ${fmt(td)} disbursed, UGX ${fmt(tc)} collected.`;
+
+  mk('mf-coll',{type:'bar',data:{labels:wl,datasets:[{label:'Goal',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Weekly Collection Goal')),backgroundColor:'#1B3A5C90',borderRadius:4},{label:'Actual',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Actual Weekly repayment collected')),backgroundColor:'#2ECC71',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+
+  const rates=wks.map(w=>{const rows=mf.filter(r=>r.Week===w);const rate=rows.reduce((s,r)=>s+(r['Repayment rate (% paid vs expected this week)']||0),0)/(rows.length||1);return+(rate*100).toFixed(1)});
+  mk('mf-rate',{type:'line',data:{labels:wl,datasets:[{label:'Rate %',data:rates,borderColor:'#E8632B',backgroundColor:'#E8632B20',fill:true,tension:.3,pointRadius:6,borderWidth:3},{label:'100% Target',data:wks.map(()=>100),borderColor:'#95A5A6',borderDash:[6,4],borderWidth:2,pointRadius:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
+
+  mk('mf-loans',{type:'bar',data:{labels:wl,datasets:[{label:'Disbursed',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Total Loans Disbursed this week')),backgroundColor:'#3498DB',borderRadius:4},{label:'Borrowers',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Total active borrowers')),type:'line',borderColor:'#8172B3',borderWidth:2.5,pointRadius:5,yAxisID:'y1'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}},y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false}}}}});
+
+  mk('mf-risk',{type:'bar',data:{labels:wl,datasets:[{label:'Late',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Number of late repayments this week')),backgroundColor:'#F39C12',borderRadius:4},{label:'At Risk',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Number of loans at risk (30+ days overdue)')),backgroundColor:'#E74C3C',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+}
+
+// ========== HUB ==========
+function renderHub(){
+  const hub=flt.hub,wks=wkV(hub),wl=wkL(hub);
+  const tr=sum(hub,'Weekly Revenue'),te=sum(hub,'Events Hosted');
+  document.getElementById('insight-hub').innerHTML=`<strong>Hub:</strong> UGX ${fmt(tr)} revenue, ${te} events.`;
+
+  const rev=wks.map(w=>sum(hub.filter(r=>r.Week===w),'Weekly Revenue'));
+  const mx=Math.max(...rev);
+  mk('hub-rev',{type:'bar',data:{labels:wl,datasets:[{label:'Revenue',data:rev,backgroundColor:rev.map(v=>v===mx?'#E8632B':'#1B3A5C'),borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+
+  mk('hub-events',{type:'bar',data:{labels:wl,datasets:[{label:'Events',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'Events Hosted')),backgroundColor:'#2ECC71',borderRadius:4},{label:'Attendance',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'Event attendance')),backgroundColor:'#3498DB',borderRadius:4},{label:'Foot Traffic',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'Total daily foot traffic')),type:'line',borderColor:'#8172B3',borderWidth:2.5,pointRadius:5}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+
+  mk('hub-prospects',{type:'line',data:{labels:wl,datasets:[{label:'Prospects',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'Numbers of Prospects ')),borderColor:'#1B3A5C',tension:.3,pointRadius:6,borderWidth:2.5},{label:'Partnerships',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'New partnerships / visitors')),borderColor:'#E8632B',tension:.3,pointRadius:6,borderWidth:2.5}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+
+  mk('hub-social',{type:'bar',data:{labels:wl,datasets:[{label:'Posts',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'No. of Social Media Posts ')),backgroundColor:'#3498DB',borderRadius:4},{label:'Bookings',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'No. of bookings')),backgroundColor:'#F39C12',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+}
+
+// ========== MARKETING ==========
+function renderMarketing(){
+  const mk2=flt.marketing;
+  const wks=[...new Set(mk2.map(r=>r.Week).filter(Boolean))].sort((a,b)=>a-b);
+  const wl=wks.map(w=>`Wk ${w}`);
+  const byBrand=grp(mk2,'Enterprise');
+  const brands=Object.keys(byBrand).filter(b=>b!=='Unknown').sort();
+
+  const tf=sum(mk2,'New Followers'),tp=sum(mk2,'Posts published');
+  document.getElementById('insight-mk').innerHTML=`<strong>Marketing:</strong> ${fmt(tf)} new followers, ${tp} posts across ${brands.length} brands.`;
+
+  mk('mk-reach',{type:'bar',data:{labels:wl,datasets:brands.map((b,i)=>({label:b,data:wks.map(w=>sum((byBrand[b]||[]).filter(r=>r.Week===w),'Weekly Reach')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:10}}}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+
+  mk('mk-followers',{type:'bar',data:{labels:wl,datasets:brands.map((b,i)=>({label:b,data:wks.map(w=>sum((byBrand[b]||[]).filter(r=>r.Week===w),'New Followers')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+
+  mk('mk-posts',{type:'bar',data:{labels:wl,datasets:brands.map((b,i)=>({label:b,data:wks.map(w=>sum((byBrand[b]||[]).filter(r=>r.Week===w),'Posts published')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+
+  const creative=mk2.filter(r=>r.Enterprise&&r.Enterprise.includes('Creative'));
+  const crWks=[...new Set(creative.map(r=>r.Week).filter(Boolean))].sort((a,b)=>a-b);
+  const crL=crWks.map(w=>`Wk ${w}`);
+  mk('mk-leads',{type:'bar',data:{labels:crL,datasets:[{label:'Leads',data:crWks.map(w=>sum(creative.filter(r=>r.Week===w),'Leads')),backgroundColor:'#3498DB',borderRadius:4},{label:'Outbound',data:crWks.map(w=>sum(creative.filter(r=>r.Week===w),'outbound touches')),backgroundColor:'#1B3A5C',borderRadius:4},{label:'Calls',data:crWks.map(w=>sum(creative.filter(r=>r.Week===w),'Discovery calls held')),backgroundColor:'#2ECC71',borderRadius:4},{label:'Deals',data:crWks.map(w=>sum(creative.filter(r=>r.Week===w),'Deals closed')),backgroundColor:'#E8632B',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+}
+
+// ========== BOOT ==========
+loadAllData();
+</script>
+</body>
+</html>
