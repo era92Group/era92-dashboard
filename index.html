@@ -212,51 +212,86 @@ let raw = { elevate:[], employment:[], microfinance:[], hub:[], marketing:[], gr
 let flt = {};
 let charts = {};
 
-// ========== CSV PARSER ==========
-function* csvGen(csv) {
-  let row=[], field='', inQ=false;
-  for(let i=0;i<csv.length;i++){
-    const ch=csv[i];
-    if(ch==='"'){if(inQ&&csv[i+1]==='"'){field+='"';i++}else inQ=!inQ}
-    else if(ch===','&&!inQ){row.push(field.trim());field=''}
-    else if((ch==='\n'||ch==='\r')&&!inQ){row.push(field.trim());field='';if(row.some(c=>c!==''))yield row;row=[];if(ch==='\r'&&csv[i+1]==='\n')i++}
-    else field+=ch;
-  }
-  row.push(field.trim());if(row.some(c=>c!==''))yield row;
-}
-function toObjects(csv, headerOverride) {
-  const rows=[...csvGen(csv)]; if(rows.length<2)return[];
-  const headers=headerOverride||rows[0];
-  const startRow=headerOverride?0:1;
-  return rows.slice(startRow).map(row=>{
-    const o={};
-    headers.forEach((h,i)=>{if(!h)return;const v=(row[i]||'').trim();const n=parseFloat(v.replace(/,/g,''));o[h]=v===''?null:(!isNaN(n)&&v!==''?n:v)});
-    return o;
-  }).filter(o=>Object.values(o).some(v=>v!==null));
+// ========== JSONP GOOGLE SHEETS FETCHER (bypasses CORS) ==========
+let _jsonpCounter = 0;
+function fetchSheetJSONP(id, tab) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_gsheetCB_' + (++_jsonpCounter);
+    const timeout = setTimeout(() => { cleanup(); reject(new Error(tab + ': timeout')); }, 15000);
+
+    function cleanup() { clearTimeout(timeout); delete window[cbName]; const el=document.getElementById(cbName); if(el)el.remove(); }
+
+    window[cbName] = function(response) {
+      cleanup();
+      try {
+        if (response.status === 'error') { reject(new Error(tab + ': ' + (response.errors||[]).map(e=>e.message).join(', '))); return; }
+        const table = response.table;
+        const headers = table.cols.map(c => c.label || c.id);
+        const rows = table.rows.map(row => {
+          const obj = {};
+          row.c.forEach((cell, i) => {
+            if (!headers[i]) return;
+            const v = cell ? (cell.v !== undefined && cell.v !== null ? cell.v : null) : null;
+            obj[headers[i]] = v;
+          });
+          return obj;
+        }).filter(o => Object.values(o).some(v => v !== null));
+        resolve(rows);
+      } catch(e) { reject(e); }
+    };
+
+    const script = document.createElement('script');
+    script.id = cbName;
+    script.src = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(tab)}`;
+    script.onerror = () => { cleanup(); reject(new Error(tab + ': network error')); };
+    document.body.appendChild(script);
+  });
 }
 
-function sheetUrl(id, tab) { return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`; }
+// Revenue sheet has a non-standard header row — need special parsing
+function fetchRevenueJSONP(id, tab) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_gsheetCB_' + (++_jsonpCounter);
+    const timeout = setTimeout(() => { cleanup(); reject(new Error('Revenue: timeout')); }, 15000);
 
-async function fetchSheet(id, tab) {
-  const r=await fetch(sheetUrl(id,tab));
-  if(!r.ok)throw new Error(`${tab}: ${r.status}`);
-  return await r.text();
-}
+    function cleanup() { clearTimeout(timeout); delete window[cbName]; const el=document.getElementById(cbName); if(el)el.remove(); }
 
-// ========== REVENUE CSV PARSER (custom headers) ==========
-function parseRevenue(csv) {
-  const rows=[...csvGen(csv)];
-  // Skip row 0 (totals) and row 1 (headers), data starts row 2
-  const headers=['Dates','Week','Quarter','Year','Enterprise','Revenue','Revenue2','New Donors','Retention','CompletionRisk','PlacementRisk'];
-  return rows.slice(2).map(row=>{
-    const o={};
-    headers.forEach((h,i)=>{
-      const v=(row[i]||'').trim();
-      const n=parseFloat(v.replace(/,/g,''));
-      o[h]=v===''?null:(!isNaN(n)&&v!==''?n:v);
-    });
-    return o;
-  }).filter(o=>o.Enterprise&&o.Revenue!==null);
+    window[cbName] = function(response) {
+      cleanup();
+      try {
+        if (response.status === 'error') { reject(new Error('Revenue: ' + (response.errors||[]).map(e=>e.message).join(', '))); return; }
+        const table = response.table;
+        // Revenue has custom layout: skip row 0 (totals), row 1 is headers, rest is data
+        // The gviz API returns cols and rows — cols may have labels from the first row
+        const manualHeaders = ['Dates','Week','Quarter','Year','Enterprise','Revenue','Revenue2','New Donors','Retention','CompletionRisk','PlacementRisk'];
+        const results = [];
+        // Skip the first 2 rows (totals + header row)
+        const dataRows = table.rows.slice(2);
+        dataRows.forEach(row => {
+          const obj = {};
+          manualHeaders.forEach((h, i) => {
+            const cell = row.c[i];
+            const v = cell ? (cell.v !== undefined && cell.v !== null ? cell.v : null) : null;
+            // Clean numeric strings with commas
+            if (typeof v === 'string') {
+              const n = parseFloat(v.replace(/,/g, ''));
+              obj[h] = !isNaN(n) ? n : v;
+            } else {
+              obj[h] = v;
+            }
+          });
+          if (obj.Enterprise && obj.Revenue !== null) results.push(obj);
+        });
+        resolve(results);
+      } catch(e) { reject(e); }
+    };
+
+    const script = document.createElement('script');
+    script.id = cbName;
+    script.src = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(tab)}`;
+    script.onerror = () => { cleanup(); reject(new Error('Revenue: network error')); };
+    document.body.appendChild(script);
+  });
 }
 
 // ========== LOAD ==========
@@ -267,16 +302,16 @@ async function loadAllData() {
 
   const errors=[];
 
-  // KPI sheets
+  // KPI sheets via JSONP (bypasses CORS)
   const kpiTabs={Elevate:'elevate',Employment:'employment',Microfinance:'microfinance',Hub:'hub','era92 Marketing ':'marketing','era92 Group':'group'};
   await Promise.all(Object.entries(kpiTabs).map(async([tab,key])=>{
-    try{const csv=await fetchSheet(SHEETS.kpi.id,tab);raw[key]=toObjects(csv)}
-    catch(e){errors.push(tab);raw[key]=[]}
+    try{raw[key]=await fetchSheetJSONP(SHEETS.kpi.id,tab)}
+    catch(e){console.warn(tab,e);errors.push(tab);raw[key]=[]}
   }));
 
-  // Revenue
-  try{const csv=await fetchSheet(SHEETS.revenue.id,'Sheet1');raw.revenue=parseRevenue(csv)}
-  catch(e){errors.push('Revenue');raw.revenue=[]}
+  // Revenue via JSONP
+  try{raw.revenue=await fetchRevenueJSONP(SHEETS.revenue.id,'Sheet1')}
+  catch(e){console.warn('Revenue',e);errors.push('Revenue');raw.revenue=[]}
 
   if(errors.length)eb.textContent='Could not load: '+errors.join(', ')+'. Ensure sheets are published to web.';
   if(errors.length)eb.style.display='block';
