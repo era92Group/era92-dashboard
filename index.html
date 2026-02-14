@@ -4,567 +4,883 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>era92 Group — Live KPI Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
 <style>
 :root {
-  --primary: #1B3A5C; --accent: #E8632B; --green: #28a745; --red: #dc3545;
-  --purple: #8172B3; --gold: #F39C12; --bg: #f8f9fa; --card: #fff;
-  --text: #212529; --muted: #6c757d; --border: #e0e4e8; --gap: 16px; --radius: 10px;
+  --primary: #1B3A5C;
+  --accent: #E8632B;
+  --accent2: #2ECC71;
+  --accent3: #9B59B6;
+  --accent4: #F39C12;
+  --bg: #F4F6F9;
+  --card: #FFFFFF;
+  --text: #2C3E50;
+  --muted: #7F8C8D;
+  --border: #E0E4E8;
+  --positive: #27ae60;
+  --negative: #e74c3c;
 }
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
 
-.header{background:linear-gradient(135deg,var(--primary) 0%,#2C5F8A 100%);color:#fff;padding:22px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.header h1{font-size:21px;font-weight:700} .header .sub{font-size:12px;opacity:.8;margin-top:2px}
-.live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600}
-.live-dot{width:8px;height:8px;background:#2ECC71;border-radius:50%;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.header {
+  background: linear-gradient(135deg, var(--primary) 0%, #2C5F8A 100%);
+  color: white; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.header .sub { opacity: 0.8; font-size: 13px; margin-top: 4px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.refresh-btn {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+  color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;
+}
+.refresh-btn:hover { background: rgba(255,255,255,0.25); }
+.last-updated { font-size: 12px; opacity: 0.7; }
 
-.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .4s}
-.loading-overlay.hidden{opacity:0;pointer-events:none}
-.spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{margin-top:14px;color:var(--muted);font-size:14px}
-.error-banner{background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:10px 24px;text-align:center;font-size:13px;display:none}
+.filter-bar {
+  display: flex; gap: 12px; padding: 12px 40px; background: white; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; align-items: center;
+}
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-group label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.filter-group select {
+  padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 13px; color: var(--text); background: white; cursor: pointer;
+}
 
-.filter-bar{background:var(--card);border-bottom:1px solid var(--border);padding:10px 32px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.filter-bar label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
-.filter-group{display:flex;align-items:center;gap:5px}
-.filter-group select{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;color:var(--text);cursor:pointer;min-width:110px}
-.filter-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,99,43,.12)}
-.refresh-btn{margin-left:auto;padding:6px 14px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
-.refresh-btn:hover{background:#244c73}
+.kpi-strip {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px; padding: 20px 40px; background: white; border-bottom: 1px solid var(--border);
+}
+.kpi { text-align: center; }
+.kpi .value { font-size: 28px; font-weight: 700; color: var(--primary); }
+.kpi .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+.kpi .change { font-size: 12px; font-weight: 600; margin-top: 2px; }
+.kpi .change.up { color: var(--positive); }
+.kpi .change.down { color: var(--negative); }
 
-.tabs{display:flex;gap:0;padding:0 32px;background:var(--card);border-bottom:2px solid var(--border);overflow-x:auto}
-.tab{padding:12px 20px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;user-select:none}
-.tab:hover{color:var(--text)} .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs {
+  display: flex; gap: 0; padding: 0 40px; background: white; border-bottom: 2px solid var(--border); overflow-x: auto;
+}
+.tab {
+  padding: 14px 22px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted);
+  border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-.content{padding:20px 32px;max-width:1440px;margin:0 auto}
-.section{display:none} .section.active{display:block}
+.content { padding: 24px 40px; max-width: 1400px; margin: 0 auto; }
+.section { display: none; }
+.section.active { display: block; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.full { grid-column: 1 / -1; }
+.card {
+  background: var(--card); border-radius: 12px; padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border);
+}
+.card h3 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+.card canvas { width: 100% !important; max-height: 300px; }
+.insight-box {
+  background: #FFF8F0; border-left: 4px solid var(--accent); padding: 16px 20px;
+  border-radius: 0 8px 8px 0; margin-bottom: 20px; font-size: 14px; line-height: 1.6;
+}
+.insight-box strong { color: var(--accent); }
 
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--gap);margin-bottom:var(--gap)}
-.kpi-card{background:var(--card);border-radius:var(--radius);padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--border)}
-.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.kpi-value{font-size:26px;font-weight:700;color:var(--primary)}
-.kpi-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(244,246,249,0.95); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.3s;
+}
+.loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.load-status { font-size: 14px; color: var(--muted); text-align: center; }
+.load-items { margin-top: 12px; font-size: 12px; }
+.load-items span { display: inline-block; margin: 2px 6px; padding: 2px 8px; border-radius: 10px; }
+.load-items .ok { background: #e8f5e9; color: #2e7d32; }
+.load-items .err { background: #fce4ec; color: #c62828; }
+.load-items .wait { background: #f5f5f5; color: #9e9e9e; }
 
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-bottom:var(--gap)}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap);margin-bottom:var(--gap)}
-.chart-card{background:var(--card);border-radius:var(--radius);padding:18px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--border)}
-.chart-card h3{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)}
-.chart-card canvas{max-height:280px}
-.insight{background:#FFF8F0;border-left:4px solid var(--accent);padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:var(--gap);font-size:13px;line-height:1.7}
-.insight strong{color:var(--accent)}
+.error-banner {
+  background: #fdf2f2; border: 1px solid #f5c6cb; color: #721c24;
+  padding: 12px 20px; margin: 0 40px 16px; border-radius: 8px; font-size: 13px; display: none;
+}
+.error-banner.show { display: block; }
 
-.data-table{width:100%;border-collapse:collapse;font-size:12px}
-.data-table th{text-align:left;padding:8px 10px;border-bottom:2px solid #dee2e6;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;white-space:nowrap}
-.data-table th:hover{color:var(--text);background:#f8f9fa}
-.data-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0}
-.data-table tr:hover td{background:#f8f9fa}
-
-.footer{text-align:center;padding:16px;font-size:11px;color:var(--muted)}
-.footer a{color:var(--accent)}
-
-@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}.header,.filter-bar,.content{padding-left:14px;padding-right:14px}.kpi-row{grid-template-columns:repeat(2,1fr)}}
-@media print{.filter-bar,.tabs,.refresh-btn{display:none}.section{display:block!important;page-break-before:always}}
+@media (max-width: 900px) {
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+  .header, .content, .kpi-strip, .filter-bar { padding-left: 16px; padding-right: 16px; }
+  .tabs { padding: 0 16px; }
+  .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+}
 </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loading"><div class="spinner"></div><div class="loading-text">Pulling live data from Google Sheets...</div></div>
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="load-status">Pulling live data from Google Sheets...</div>
+  <div class="load-items" id="load-items"></div>
+</div>
+
 <div class="error-banner" id="error-banner"></div>
 
 <div class="header">
-  <div><h1>era92 Group — Live Dashboard</h1><div class="sub">Auto-refreshes from Google Sheets · Updated every time you open it</div></div>
-  <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+  <div>
+    <h1>era92 Group Dashboard</h1>
+    <div class="sub">Live KPI Tracker — <span id="date-range">Loading...</span></div>
+  </div>
+  <div class="header-right">
+    <div class="last-updated" id="last-updated"></div>
+    <button class="refresh-btn" onclick="location.reload()">Refresh Data</button>
+  </div>
 </div>
 
 <div class="filter-bar">
-  <div class="filter-group"><label>Week</label><select id="f-week" onchange="applyFilters()"><option value="all">All</option></select></div>
-  <div class="filter-group"><label>Month</label><select id="f-month" onchange="applyFilters()"><option value="all">All</option></select></div>
-  <div class="filter-group"><label>Quarter</label><select id="f-quarter" onchange="applyFilters()"><option value="all">All</option></select></div>
-  <div class="filter-group"><label>Year</label><select id="f-year" onchange="applyFilters()"><option value="all">All</option></select></div>
-  <div class="filter-group"><label>Location / Brand</label><select id="f-location" onchange="applyFilters()"><option value="all">All</option></select></div>
-  <button class="refresh-btn" onclick="loadAllData()">&#8635; Refresh</button>
+  <div class="filter-group"><label>Week</label><select id="f-week" onchange="applyFilters()"><option value="">All</option></select></div>
+  <div class="filter-group"><label>Quarter</label><select id="f-quarter" onchange="applyFilters()"><option value="">All</option></select></div>
+  <div class="filter-group"><label>Year</label><select id="f-year" onchange="applyFilters()"><option value="">All</option></select></div>
+  <div class="filter-group"><label>Location</label><select id="f-location" onchange="applyFilters()"><option value="">All</option></select></div>
+  <div class="filter-group"><label>Brand</label><select id="f-brand" onchange="applyFilters()"><option value="">All</option></select></div>
 </div>
 
-<div class="tabs">
+<div class="kpi-strip">
+  <div class="kpi"><div class="value" id="k-rev">—</div><div class="label">Total Revenue</div><div class="change" id="k-rev-c"></div></div>
+  <div class="kpi"><div class="value" id="k-enr">—</div><div class="label">Enrollments</div><div class="change" id="k-enr-c"></div></div>
+  <div class="kpi"><div class="value" id="k-plc">—</div><div class="label">Placements</div><div class="change" id="k-plc-c"></div></div>
+  <div class="kpi"><div class="value" id="k-loan">—</div><div class="label">Loans Disbursed</div><div class="change" id="k-loan-c"></div></div>
+  <div class="kpi"><div class="value" id="k-hub">—</div><div class="label">Hub Revenue</div><div class="change" id="k-hub-c"></div></div>
+  <div class="kpi"><div class="value" id="k-hire">—</div><div class="label">Hires</div><div class="change" id="k-hire-c"></div></div>
+</div>
+
+<div class="tabs" id="tab-bar">
   <div class="tab active" data-tab="overview">Overview</div>
   <div class="tab" data-tab="revenue">Revenue</div>
   <div class="tab" data-tab="elevate">Elevate</div>
   <div class="tab" data-tab="employment">Employment</div>
   <div class="tab" data-tab="microfinance">Microfinance</div>
   <div class="tab" data-tab="hub">Hub</div>
-  <div class="tab" data-tab="marketing">Marketing</div>
+  <div class="tab" data-tab="group">Group HR</div>
 </div>
 
 <div class="content">
 
-<!-- OVERVIEW -->
 <div class="section active" id="sec-overview">
-  <div class="kpi-row" id="kpi-row"></div>
-  <div class="insight" id="insight-overview"></div>
+  <div class="insight-box" id="ins-overview"><strong>Loading...</strong></div>
   <div class="grid2">
-    <div class="chart-card"><h3>Total Revenue by Brand (Q1 2026)</h3><canvas id="ov-revbrand"></canvas></div>
-    <div class="chart-card"><h3>Weekly Revenue Trend</h3><canvas id="ov-revtrend"></canvas></div>
+    <div class="card"><h3>Revenue by Brand</h3><canvas id="c-ov-brand"></canvas></div>
+    <div class="card"><h3>Weekly Revenue Trend</h3><canvas id="c-ov-revtrend"></canvas></div>
   </div>
-  <div class="grid2">
-    <div class="chart-card"><h3>Enrollment by Location</h3><canvas id="ov-enrollment"></canvas></div>
-    <div class="chart-card"><h3>Admissions — Gender Split</h3><canvas id="ov-gender"></canvas></div>
+  <div class="grid3">
+    <div class="card"><h3>Enrollment by Location</h3><canvas id="c-ov-enroll"></canvas></div>
+    <div class="card"><h3>Placements by Week</h3><canvas id="c-ov-place"></canvas></div>
+    <div class="card"><h3>Microfinance Loans</h3><canvas id="c-ov-loans"></canvas></div>
   </div>
 </div>
 
-<!-- REVENUE -->
 <div class="section" id="sec-revenue">
-  <div class="kpi-row" id="rev-kpi-row"></div>
-  <div class="insight" id="insight-revenue"></div>
+  <div class="insight-box" id="ins-revenue"><strong>Loading...</strong></div>
   <div class="grid2">
-    <div class="chart-card"><h3>Revenue by Brand</h3><canvas id="rev-brand"></canvas></div>
-    <div class="chart-card"><h3>Weekly Revenue Trend by Brand</h3><canvas id="rev-trend"></canvas></div>
+    <div class="card"><h3>Revenue by Brand</h3><canvas id="c-rv-bar"></canvas></div>
+    <div class="card"><h3>Revenue Share</h3><canvas id="c-rv-donut"></canvas></div>
   </div>
   <div class="grid2">
-    <div class="chart-card"><h3>Brand Revenue Share</h3><canvas id="rev-share"></canvas></div>
-    <div class="chart-card"><h3>Week-over-Week Revenue Growth</h3><canvas id="rev-growth"></canvas></div>
+    <div class="card full"><h3>Weekly Revenue Trend by Brand</h3><canvas id="c-rv-trend"></canvas></div>
   </div>
-  <div class="chart-card" style="margin-bottom:16px"><h3>Revenue Detail Table</h3><div id="rev-table" style="overflow-x:auto"></div></div>
 </div>
 
-<!-- ELEVATE -->
 <div class="section" id="sec-elevate">
-  <div class="insight" id="insight-elevate"></div>
+  <div class="insight-box" id="ins-elevate"><strong>Loading...</strong></div>
   <div class="grid2">
-    <div class="chart-card"><h3>Weekly Enrollment by Hub</h3><canvas id="el-enroll"></canvas></div>
-    <div class="chart-card"><h3>Weekly Admissions by Hub</h3><canvas id="el-admit"></canvas></div>
+    <div class="card"><h3>Weekly Enrollment by Hub</h3><canvas id="c-el-enroll"></canvas></div>
+    <div class="card"><h3>Weekly Admissions by Hub</h3><canvas id="c-el-admit"></canvas></div>
   </div>
   <div class="grid2">
-    <div class="chart-card"><h3>Gender Split (Admissions)</h3><canvas id="el-gender"></canvas></div>
-    <div class="chart-card"><h3>Refugee Enrollment</h3><canvas id="el-refugee"></canvas></div>
+    <div class="card"><h3>Gender Split (Admissions)</h3><canvas id="c-el-gender"></canvas></div>
+    <div class="card"><h3>Refugee Enrollment</h3><canvas id="c-el-refugee"></canvas></div>
   </div>
-  <div class="chart-card" style="margin-bottom:16px"><h3>Elevate Data Table</h3><div id="el-table" style="overflow-x:auto"></div></div>
 </div>
 
-<!-- EMPLOYMENT -->
 <div class="section" id="sec-employment">
-  <div class="insight" id="insight-employment"></div>
+  <div class="insight-box" id="ins-employment"><strong>Loading...</strong></div>
   <div class="grid2">
-    <div class="chart-card"><h3>New Placements by Week</h3><canvas id="em-place"></canvas></div>
-    <div class="chart-card"><h3>Income Earned (UGX)</h3><canvas id="em-income"></canvas></div>
+    <div class="card"><h3>New Placements by Week</h3><canvas id="c-em-place"></canvas></div>
+    <div class="card"><h3>Income Earned (UGX)</h3><canvas id="c-em-income"></canvas></div>
   </div>
   <div class="grid2">
-    <div class="chart-card"><h3>Active Projects</h3><canvas id="em-projects"></canvas></div>
-    <div class="chart-card"><h3>Cumulative Placements</h3><canvas id="em-cumul"></canvas></div>
+    <div class="card"><h3>Active Projects</h3><canvas id="c-em-proj"></canvas></div>
+    <div class="card"><h3>Interviews Completed</h3><canvas id="c-em-intv"></canvas></div>
   </div>
 </div>
 
-<!-- MICROFINANCE -->
 <div class="section" id="sec-microfinance">
-  <div class="insight" id="insight-mf"></div>
+  <div class="insight-box" id="ins-micro"><strong>Loading...</strong></div>
   <div class="grid2">
-    <div class="chart-card"><h3>Collection Goal vs Actual (UGX)</h3><canvas id="mf-coll"></canvas></div>
-    <div class="chart-card"><h3>Repayment Rate (%)</h3><canvas id="mf-rate"></canvas></div>
+    <div class="card"><h3>Loans Disbursed by Week</h3><canvas id="c-mf-disb"></canvas></div>
+    <div class="card"><h3>Repayment Rate (%)</h3><canvas id="c-mf-rate"></canvas></div>
   </div>
   <div class="grid2">
-    <div class="chart-card"><h3>Loans Disbursed & Borrowers</h3><canvas id="mf-loans"></canvas></div>
-    <div class="chart-card"><h3>Portfolio Risk</h3><canvas id="mf-risk"></canvas></div>
+    <div class="card"><h3>Loans at Risk (30+ days)</h3><canvas id="c-mf-risk"></canvas></div>
+    <div class="card"><h3>Disbursed vs Collected</h3><canvas id="c-mf-coll"></canvas></div>
   </div>
 </div>
 
-<!-- HUB -->
 <div class="section" id="sec-hub">
-  <div class="insight" id="insight-hub"></div>
+  <div class="insight-box" id="ins-hub"><strong>Loading...</strong></div>
   <div class="grid2">
-    <div class="chart-card"><h3>Weekly Revenue (UGX)</h3><canvas id="hub-rev"></canvas></div>
-    <div class="chart-card"><h3>Events & Attendance</h3><canvas id="hub-events"></canvas></div>
+    <div class="card"><h3>Hub Revenue by Week</h3><canvas id="c-hb-rev"></canvas></div>
+    <div class="card"><h3>Events & Partnerships</h3><canvas id="c-hb-evt"></canvas></div>
   </div>
   <div class="grid2">
-    <div class="chart-card"><h3>Prospects & Partnerships</h3><canvas id="hub-prospects"></canvas></div>
-    <div class="chart-card"><h3>Social Media & Bookings</h3><canvas id="hub-social"></canvas></div>
+    <div class="card"><h3>Prospects & Foot Traffic</h3><canvas id="c-hb-pros"></canvas></div>
+    <div class="card"><h3>Active Clients & Bookings</h3><canvas id="c-hb-cli"></canvas></div>
   </div>
 </div>
 
-<!-- MARKETING -->
-<div class="section" id="sec-marketing">
-  <div class="insight" id="insight-mk"></div>
+<div class="section" id="sec-group">
+  <div class="insight-box" id="ins-group"><strong>Loading...</strong></div>
   <div class="grid2">
-    <div class="chart-card"><h3>Weekly Reach by Brand</h3><canvas id="mk-reach"></canvas></div>
-    <div class="chart-card"><h3>New Followers by Brand</h3><canvas id="mk-followers"></canvas></div>
-  </div>
-  <div class="grid2">
-    <div class="chart-card"><h3>Posts Published</h3><canvas id="mk-posts"></canvas></div>
-    <div class="chart-card"><h3>Creative — Leads Pipeline</h3><canvas id="mk-leads"></canvas></div>
+    <div class="card"><h3>Applications & Interviews</h3><canvas id="c-gr-app"></canvas></div>
+    <div class="card"><h3>Hires & Trainings</h3><canvas id="c-gr-hire"></canvas></div>
   </div>
 </div>
 
 </div>
-
-<div class="footer">era92 Group Live Dashboard · Data from <a href="https://docs.google.com/spreadsheets/d/1fch4Cy5sj1VQ_iaD2NK0SoOE1EKjsr_7YmZSUt3-ngU" target="_blank">Weekly KPIs</a> · <a href="https://docs.google.com/spreadsheets/d/1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI" target="_blank">Revenue Tracker</a> · Last refreshed: <span id="last-refresh">—</span></div>
 
 <script>
-// ========== CONFIG ==========
-const SHEETS = {
-  kpi: { id: '1fch4Cy5sj1VQ_iaD2NK0SoOE1EKjsr_7YmZSUt3-ngU', tabs: ['Elevate','Employment','Microfinance','Hub','era92 Marketing ','era92 Group'] },
-  revenue: { id: '1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI', tabs: ['Sheet1'] }
-};
-const C = ['#E8632B','#1B3A5C','#2ECC71','#8172B3','#F39C12','#E74C3C','#3498DB','#1ABC9C'];
+/* ==================================================
+   era92 Group Live Dashboard
+   Uses Google Visualization API for reliable data fetch
+   ================================================== */
 
-// ========== STATE ==========
-let raw = { elevate:[], employment:[], microfinance:[], hub:[], marketing:[], group:[], revenue:[] };
-let flt = {};
-let charts = {};
+var COLORS = ['#E8632B','#2ECC71','#3498DB','#9B59B6','#F39C12','#1ABC9C','#E74C3C','#34495E'];
+var BRAND_COLORS = {'92 Cafe':'#E8632B','92 CarWash':'#3498DB','era92 Hub':'#2ECC71','era92 Creative':'#9B59B6','era92 Elevate':'#F39C12','era92 Finance':'#1ABC9C'};
+var LOC_COLORS = {'Lungujja':'#E8632B','Katanga':'#3498DB','Jinja':'#2ECC71','Namayemba':'#9B59B6'};
 
-// ========== JSONP GOOGLE SHEETS FETCHER (bypasses CORS) ==========
-let _jsonpCounter = 0;
-function fetchSheetJSONP(id, tab) {
-  return new Promise((resolve, reject) => {
-    const cbName = '_gsheetCB_' + (++_jsonpCounter);
-    const timeout = setTimeout(() => { cleanup(); reject(new Error(tab + ': timeout')); }, 15000);
+var KPI_ID = '1fch4Cy5sj1VQ_iaD2NK0SoOE1EKjsr_7YmZSUt3-ngU';
+var REV_ID = '1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI';
 
-    function cleanup() { clearTimeout(timeout); delete window[cbName]; const el=document.getElementById(cbName); if(el)el.remove(); }
+/* ---- Global state ---- */
+var DATA = {};          // raw sheet data
+var FDATA = {};         // filtered data
+var CHARTS = {};        // chart instances
+var ERRORS = [];
 
-    window[cbName] = function(response) {
-      cleanup();
-      try {
-        if (response.status === 'error') { reject(new Error(tab + ': ' + (response.errors||[]).map(e=>e.message).join(', '))); return; }
-        const table = response.table;
-        const headers = table.cols.map(c => c.label || c.id);
-        const rows = (table.rows || []).map(row => {
-          const obj = {};
-          if (!row || !row.c) return obj;
-          row.c.forEach((cell, i) => {
-            if (!headers[i]) return;
-            const v = cell ? (cell.v !== undefined && cell.v !== null ? cell.v : null) : null;
-            obj[headers[i]] = v;
-          });
-          return obj;
-        }).filter(o => Object.values(o).some(v => v !== null));
-        resolve(rows);
-      } catch(e) { reject(e); }
-    };
+/* ---- Tab switching ---- */
+document.getElementById('tab-bar').addEventListener('click', function(e) {
+  var tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  tab.classList.add('active');
+  var sec = document.getElementById('sec-' + tab.getAttribute('data-tab'));
+  if (sec) sec.classList.add('active');
+});
 
-    const script = document.createElement('script');
-    script.id = cbName;
-    script.src = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(tab)}`;
-    script.onerror = () => { cleanup(); reject(new Error(tab + ': network error')); };
-    document.body.appendChild(script);
-  });
-}
-
-// Revenue sheet has a non-standard header row — need special parsing
-function fetchRevenueJSONP(id, tab) {
-  return new Promise((resolve, reject) => {
-    const cbName = '_gsheetCB_' + (++_jsonpCounter);
-    const timeout = setTimeout(() => { cleanup(); reject(new Error('Revenue: timeout')); }, 15000);
-
-    function cleanup() { clearTimeout(timeout); delete window[cbName]; const el=document.getElementById(cbName); if(el)el.remove(); }
-
-    window[cbName] = function(response) {
-      cleanup();
-      try {
-        if (response.status === 'error') { reject(new Error('Revenue: ' + (response.errors||[]).map(e=>e.message).join(', '))); return; }
-        const table = response.table;
-        // Revenue has custom layout: skip row 0 (totals), row 1 is headers, rest is data
-        // The gviz API returns cols and rows — cols may have labels from the first row
-        const manualHeaders = ['Dates','Week','Quarter','Year','Enterprise','Revenue','Revenue2','New Donors','Retention','CompletionRisk','PlacementRisk'];
-        const results = [];
-        // Skip the first 2 rows (totals + header row)
-        const dataRows = table.rows.slice(2);
-        dataRows.forEach(row => {
-          const obj = {};
-          manualHeaders.forEach((h, i) => {
-            const cell = row.c[i];
-            const v = cell ? (cell.v !== undefined && cell.v !== null ? cell.v : null) : null;
-            // Clean numeric strings with commas
-            if (typeof v === 'string') {
-              const n = parseFloat(v.replace(/,/g, ''));
-              obj[h] = !isNaN(n) ? n : v;
-            } else {
-              obj[h] = v;
+/* ---- Query Google Sheet via Visualization API ---- */
+function queryGSheet(sheetId, tabName) {
+  return new Promise(function(resolve, reject) {
+    try {
+      var url = 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?sheet=' + encodeURIComponent(tabName);
+      var q = new google.visualization.Query(url);
+      q.setTimeout(20);
+      q.send(function(resp) {
+        try {
+          if (resp.isError()) { reject(new Error(resp.getMessage())); return; }
+          var t = resp.getDataTable();
+          var nc = t.getNumberOfColumns(), nr = t.getNumberOfRows();
+          var hdrs = [];
+          for (var c = 0; c < nc; c++) hdrs.push(t.getColumnLabel(c) || t.getColumnId(c));
+          var rows = [];
+          for (var r = 0; r < nr; r++) {
+            var obj = {}, hasVal = false;
+            for (var c2 = 0; c2 < nc; c2++) {
+              var v = t.getValue(r, c2);
+              obj[hdrs[c2]] = v;
+              if (v !== null && v !== undefined && v !== '') hasVal = true;
             }
-          });
-          if (obj.Enterprise && obj.Revenue !== null) results.push(obj);
-        });
-        resolve(results);
-      } catch(e) { reject(e); }
-    };
-
-    const script = document.createElement('script');
-    script.id = cbName;
-    script.src = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(tab)}`;
-    script.onerror = () => { cleanup(); reject(new Error('Revenue: network error')); };
-    document.body.appendChild(script);
+            if (hasVal) rows.push(obj);
+          }
+          resolve({ headers: hdrs, rows: rows });
+        } catch (e) { reject(e); }
+      });
+    } catch (e) { reject(e); }
   });
 }
 
-// ========== LOAD ==========
-async function loadAllData() {
-  const ld=document.getElementById('loading');
-  const eb=document.getElementById('error-banner');
-  ld.classList.remove('hidden'); eb.style.display='none';
+/* ---- Revenue sheet: no labels, map by column index ---- */
+function queryRevenue() {
+  return new Promise(function(resolve, reject) {
+    try {
+      var url = 'https://docs.google.com/spreadsheets/d/' + REV_ID + '/gviz/tq?sheet=Sheet1';
+      var q = new google.visualization.Query(url);
+      q.setTimeout(20);
+      q.send(function(resp) {
+        try {
+          if (resp.isError()) { reject(new Error(resp.getMessage())); return; }
+          var t = resp.getDataTable();
+          var nr = t.getNumberOfRows(), nc = t.getNumberOfColumns();
+          // Column mapping by position (from the sheet structure):
+          // 0=Dates, 1=Week, 2=Quarter, 3=Year, 4=Enterprise, 5=Revenue
+          var COLS = { Dates:0, Week:1, Quarter:2, Year:3, Enterprise:4, Revenue:5, NewDonors:7 };
+          var rows = [];
+          for (var r = 0; r < nr; r++) {
+            var enterprise = t.getValue(r, COLS.Enterprise);
+            var revenue = t.getValue(r, COLS.Revenue);
+            // Skip non-data rows (totals, headers, empty)
+            if (!enterprise || typeof enterprise !== 'string') continue;
+            if (enterprise.toLowerCase().includes('total') || enterprise.toLowerCase().includes('enterprise')) continue;
+            rows.push({
+              Dates: t.getValue(r, COLS.Dates),
+              Week: t.getValue(r, COLS.Week),
+              Quarter: t.getValue(r, COLS.Quarter),
+              Year: t.getValue(r, COLS.Year),
+              Enterprise: enterprise.trim(),
+              Revenue: typeof revenue === 'number' ? revenue : parseFloat(String(revenue).replace(/,/g,'')) || 0,
+              NewDonors: t.getValue(r, COLS.NewDonors)
+            });
+          }
+          resolve({ headers: ['Dates','Week','Quarter','Year','Enterprise','Revenue','NewDonors'], rows: rows });
+        } catch (e) { reject(e); }
+      });
+    } catch (e) { reject(e); }
+  });
+}
 
-  const errors=[];
-
-  try {
-    // KPI sheets via JSONP (bypasses CORS)
-    const kpiTabs={Elevate:'elevate',Employment:'employment',Microfinance:'microfinance',Hub:'hub','era92 Marketing ':'marketing','era92 Group':'group'};
-    await Promise.all(Object.entries(kpiTabs).map(async([tab,key])=>{
-      try{
-        const data = await fetchSheetJSONP(SHEETS.kpi.id,tab);
-        raw[key] = data || [];
-        console.log(tab + ': loaded ' + raw[key].length + ' rows');
-      }
-      catch(e){console.warn(tab,e);errors.push(tab);raw[key]=[]}
-    }));
-
-    // Revenue via JSONP
-    try{
-      raw.revenue = await fetchRevenueJSONP(SHEETS.revenue.id,'Sheet1');
-      console.log('Revenue: loaded ' + raw.revenue.length + ' rows');
-    }
-    catch(e){console.warn('Revenue',e);errors.push('Revenue');raw.revenue=[]}
-
-    if(errors.length){
-      eb.textContent='Could not load: '+errors.join(', ')+'. Go to each Google Sheet → File → Share → Publish to web → Click Publish.';
-      eb.style.display='block';
-    }
-
-    document.getElementById('last-refresh').textContent=new Date().toLocaleString();
-    try { populateFilters(); } catch(e) { console.error('Filter error:', e); }
-    try { applyFilters(); } catch(e) { console.error('Render error:', e); }
-  } catch(e) {
-    console.error('Fatal load error:', e);
-    eb.textContent = 'Dashboard error: ' + e.message;
-    eb.style.display = 'block';
-  } finally {
-    // ALWAYS hide spinner
-    ld.classList.add('hidden');
+/* ---- Utilities ---- */
+function N(v) { return typeof v === 'number' ? v : parseFloat(v) || 0; }
+function fmtUGX(v) {
+  v = N(v);
+  if (v >= 1e9) return 'UGX ' + (v/1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return 'UGX ' + (v/1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return 'UGX ' + (v/1e3).toFixed(0) + 'K';
+  return 'UGX ' + Math.round(v).toLocaleString();
+}
+function fmtN(v) { v = N(v); if (v >= 1e6) return (v/1e6).toFixed(1)+'M'; if (v >= 1e3) return (v/1e3).toFixed(1)+'K'; return Math.round(v).toLocaleString(); }
+function sum(rows, col) { return rows.reduce(function(s,r){ return s + N(r[col]); }, 0); }
+function col(hdrs) {
+  // Return the first header that contains one of the given keywords
+  var args = Array.prototype.slice.call(arguments, 1);
+  for (var i = 0; i < args.length; i++) {
+    var kw = args[i].toLowerCase();
+    var m = hdrs.find(function(h){ return h && h.toLowerCase().indexOf(kw) >= 0; });
+    if (m) return m;
   }
+  return null;
 }
 
-// ========== FILTERS ==========
-function populateFilters(){
-  const all=[...raw.elevate,...raw.employment,...raw.hub,...raw.revenue];
-  popSel('f-week',[...new Set(all.map(r=>r.Week).filter(Boolean))].sort((a,b)=>a-b),v=>`Week ${v}`);
-  popSel('f-quarter',[...new Set(all.map(r=>r.Quarter).filter(Boolean))].sort(),v=>`Q${v}`);
-  popSel('f-year',[...new Set(all.map(r=>r.Year).filter(Boolean))].sort(),v=>v);
-  const months=[...new Set(raw.microfinance.map(r=>r.Month).filter(Boolean))].sort((a,b)=>a-b);
-  popSel('f-month',months,v=>`Month ${v}`);
-  const locs=[...new Set([
-    ...raw.elevate.map(r=>r['Hub Location']),
-    ...raw.revenue.map(r=>r.Enterprise)
-  ].filter(Boolean))].sort();
-  popSel('f-location',locs,v=>v);
-}
-function popSel(id,vals,fn){const s=document.getElementById(id);const c=s.value;while(s.options.length>1)s.remove(1);vals.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=fn(v);s.appendChild(o)});s.value=c}
-function gf(id){const v=document.getElementById(id).value;return v==='all'?null:(parseFloat(v)||v)}
-
-function filterR(rows,wf='Week',lf='Hub Location'){
-  const w=gf('f-week'),q=gf('f-quarter'),y=gf('f-year'),l=gf('f-location');
-  return rows.filter(r=>{
-    if(w!==null&&r[wf]!==w)return false;
-    if(q!==null&&r.Quarter!==q)return false;
-    if(y!==null&&r.Year!==y)return false;
-    if(l!==null&&r[lf]&&r[lf]!==l)return false;
-    return true;
+/* ---- Group rows by week ---- */
+function byWeek(rows, weekCol) {
+  var g = {};
+  rows.forEach(function(r) {
+    var w = N(r[weekCol]);
+    if (!w) return;
+    if (!g[w]) g[w] = [];
+    g[w].push(r);
   });
+  var weeks = Object.keys(g).map(Number).sort(function(a,b){return a-b;});
+  return { weeks: weeks, groups: g };
 }
 
-function applyFilters(){
-  flt.elevate=filterR(raw.elevate);
-  flt.employment=filterR(raw.employment,'Week','Program');
-  flt.microfinance=filterR(raw.microfinance,'Week','Branch');
-  flt.hub=filterR(raw.hub,'Week',null);
-  flt.marketing=filterR(raw.marketing,'Week','Enterprise');
-  flt.group=filterR(raw.group,'Week','Program');
-  flt.revenue=filterR(raw.revenue,'Week','Enterprise');
+/* ---- Chart factory ---- */
+function mk(id, type, labels, datasets, opts) {
+  if (CHARTS[id]) CHARTS[id].destroy();
+  var el = document.getElementById(id);
+  if (!el) return;
+  var base = {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    plugins: { legend: { position:'top', labels: { usePointStyle:true, padding:12, font:{size:11} } } },
+    scales: type==='doughnut'||type==='pie' ? {} : { x:{grid:{display:false}}, y:{beginAtZero:true, grid:{color:'#f0f0f0'}} }
+  };
+  var o = Object.assign({}, base, opts || {});
+  CHARTS[id] = new Chart(el, { type:type, data:{labels:labels, datasets:datasets}, options:o });
+}
+
+function mkLine(id, labels, series) {
+  mk(id, 'line', labels, series.map(function(s,i){
+    return { label:s.label, data:s.data, borderColor:s.color||COLORS[i%COLORS.length], backgroundColor:(s.color||COLORS[i%COLORS.length])+'20', borderWidth:2, fill:false, tension:0.3, pointRadius:3 };
+  }));
+}
+function mkBar(id, labels, series, stacked) {
+  var ds = series.map(function(s,i){ return { label:s.label, data:s.data, backgroundColor:s.color||COLORS[i%COLORS.length], borderRadius:4 }; });
+  var opts = stacked ? { scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,grid:{color:'#f0f0f0'}}} } : undefined;
+  mk(id, 'bar', labels, ds, opts);
+}
+function mkDonut(id, labels, data) {
+  mk(id, 'doughnut', labels, [{ data:data, backgroundColor:labels.map(function(l,i){ return BRAND_COLORS[l]||COLORS[i%COLORS.length]; }), borderWidth:2, borderColor:'#fff' }], { cutout:'55%' });
+}
+
+/* ==== FILTERS ==== */
+function applyFilters() {
+  var fw = document.getElementById('f-week').value;
+  var fq = document.getElementById('f-quarter').value;
+  var fy = document.getElementById('f-year').value;
+  var fl = document.getElementById('f-location').value;
+  var fb = document.getElementById('f-brand').value;
+
+  Object.keys(DATA).forEach(function(name) {
+    var sheet = DATA[name];
+    if (!sheet || !sheet.rows) { FDATA[name] = sheet; return; }
+    var h = sheet.headers;
+    var wc = col(h,'Week');
+    var qc = col(h,'Quarter');
+    var yc = col(h,'Year');
+    var lc = col(h,'Hub Location','Location','Branch');
+    var bc = col(h,'Enterprise','Brand');
+
+    FDATA[name] = {
+      headers: h,
+      rows: sheet.rows.filter(function(r) {
+        if (fw && wc && N(r[wc]) !== N(fw)) return false;
+        if (fq && qc && String(N(r[qc])) !== fq) return false;
+        if (fy && yc && String(N(r[yc])) !== fy) return false;
+        if (fl && lc && String(r[lc]) !== fl) return false;
+        if (fb && bc && String(r[bc]) !== fb) return false;
+        return true;
+      })
+    };
+  });
   renderAll();
 }
 
-// ========== HELPERS ==========
-function fmt(v){if(v==null)return'0';if(Math.abs(v)>=1e9)return(v/1e9).toFixed(1)+'B';if(Math.abs(v)>=1e6)return(v/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return(v/1e3).toFixed(1)+'K';return v.toLocaleString()}
-function sum(a,f){return a.reduce((s,r)=>s+(r[f]||0),0)}
-function grp(a,f){const g={};a.forEach(r=>{const k=r[f]||'Unknown';if(!g[k])g[k]=[];g[k].push(r)});return g}
-function wkV(a){return[...new Set(a.map(r=>r.Week))].filter(Boolean).sort((a,b)=>a-b)}
-function wkL(a){return wkV(a).map(w=>`Wk ${w}`)}
-function mk(id,cfg){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;charts[id]=new Chart(ctx,cfg)}
-function kpi(label,value,sub){return`<div class="kpi-card"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-sub">${sub}</div></div>`}
+function populateFilters() {
+  var weeks = new Set(), quarters = new Set(), years = new Set(), locations = new Set(), brands = new Set();
+  Object.values(DATA).forEach(function(s) {
+    if (!s || !s.rows) return;
+    s.rows.forEach(function(r) {
+      var wc = col(s.headers,'Week');
+      if (wc && N(r[wc])) weeks.add(N(r[wc]));
+      var qc = col(s.headers,'Quarter');
+      if (qc && r[qc]) quarters.add(String(N(r[qc])));
+      var yc = col(s.headers,'Year');
+      if (yc && r[yc]) years.add(String(N(r[yc])));
+      var lc = col(s.headers,'Hub Location','Location','Branch');
+      if (lc && r[lc]) locations.add(String(r[lc]));
+      var bc = col(s.headers,'Enterprise','Brand');
+      if (bc && r[bc]) brands.add(String(r[bc]));
+    });
+  });
 
-// ========== TABS ==========
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');document.getElementById('sec-'+t.dataset.tab).classList.add('active');
-}));
+  function fill(selId, vals, prefix) {
+    var sel = document.getElementById(selId);
+    var arr = Array.from(vals).sort(function(a,b){ return N(a)-N(b)||String(a).localeCompare(String(b)); });
+    arr.forEach(function(v) {
+      if (!v || v==='NaN') return;
+      var o = document.createElement('option');
+      o.value = v; o.textContent = (prefix||'') + v;
+      sel.appendChild(o);
+    });
+  }
+  fill('f-week', weeks, 'Week ');
+  fill('f-quarter', quarters, 'Q');
+  fill('f-year', years, '');
+  fill('f-location', locations, '');
+  fill('f-brand', brands, '');
 
-// ========== RENDER ALL ==========
-function renderAll(){renderOverview();renderRevenue();renderElevate();renderEmployment();renderMicrofinance();renderHub();renderMarketing()}
-
-// ========== OVERVIEW ==========
-function renderOverview(){
-  const el=flt.elevate,em=flt.employment,mf=flt.microfinance,hub=flt.hub,rev=flt.revenue;
-  const tRev=sum(rev,'Revenue'), tEnroll=sum(el,'New youth enrolled this week'), tPlace=sum(em,'New placements secured this week');
-  const tIncome=sum(em,'Total income earned this week'), tDisb=sum(mf,'Total Loans Disbursed this week'), hubRev=sum(hub,'Weekly Revenue');
-
-  document.getElementById('kpi-row').innerHTML=[
-    kpi('Group Revenue','UGX '+fmt(tRev),'All brands combined'),
-    kpi('New Enrollments',fmt(tEnroll),'Elevate program'),
-    kpi('Job Placements',fmt(tPlace),'Employment'),
-    kpi('Income Earned','UGX '+fmt(tIncome),'From placements'),
-    kpi('Loans Disbursed','UGX '+fmt(tDisb),'Microfinance'),
-    kpi('Hub Revenue','UGX '+fmt(hubRev),'era92 Hub')
-  ].join('');
-
-  document.getElementById('insight-overview').innerHTML=`<strong>Group Overview:</strong> UGX ${fmt(tRev)} total revenue across all brands. ${fmt(tEnroll)} youth enrolled, ${tPlace} job placements securing UGX ${fmt(tIncome)} income. Microfinance disbursed UGX ${fmt(tDisb)}.`;
-
-  // Revenue by brand (horizontal bar)
-  const byBrand=grp(rev,'Enterprise');
-  const brands=Object.keys(byBrand).sort((a,b)=>sum(byBrand[b],'Revenue')-sum(byBrand[a],'Revenue'));
-  mk('ov-revbrand',{type:'bar',data:{labels:brands,datasets:[{label:'Revenue (UGX)',data:brands.map(b=>sum(byBrand[b],'Revenue')),backgroundColor:brands.map((_,i)=>C[i%C.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fmt(v)}}}}});
-
-  // Weekly revenue trend
-  const wks=wkV(rev), wl=wkL(rev);
-  const weeklyRev=wks.map(w=>sum(rev.filter(r=>r.Week===w),'Revenue'));
-  mk('ov-revtrend',{type:'line',data:{labels:wl,datasets:[{label:'Revenue',data:weeklyRev,borderColor:'#E8632B',backgroundColor:'#E8632B20',fill:true,tension:.3,pointRadius:5,borderWidth:2.5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}}});
-
-  // Enrollment
-  const elWks=wkV(el),elWl=wkL(el),byLoc=grp(el,'Hub Location'),locs=Object.keys(byLoc).sort();
-  mk('ov-enrollment',{type:'bar',data:{labels:elWl,datasets:locs.map((l,i)=>({label:l,data:elWks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'New youth enrolled this week')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:10,font:{size:11}}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
-
-  // Gender
-  const tF=elWks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Female admitted'));
-  const tM=elWks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Male admitted'));
-  mk('ov-gender',{type:'bar',data:{labels:elWl,datasets:[{label:'Female',data:tF,backgroundColor:'#8172B3',borderRadius:4},{label:'Male',data:tM,backgroundColor:'#1B3A5C',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
-}
-
-// ========== REVENUE ==========
-function renderRevenue(){
-  const rev=flt.revenue;
-  const byBrand=grp(rev,'Enterprise');
-  const brands=Object.keys(byBrand).sort((a,b)=>sum(byBrand[b],'Revenue')-sum(byBrand[a],'Revenue'));
-  const tRev=sum(rev,'Revenue');
-  const topBrand=brands[0]||'N/A';
-  const topRev=brands.length?sum(byBrand[topBrand],'Revenue'):0;
-  const wks=wkV(rev);
-
-  document.getElementById('rev-kpi-row').innerHTML=[
-    kpi('Total Revenue','UGX '+fmt(tRev),'All brands'),
-    kpi('Top Brand',topBrand,'UGX '+fmt(topRev)),
-    kpi('Brands Tracked',brands.length,'Active enterprises'),
-    kpi('Weeks of Data',wks.length,'Q1 2026')
-  ].join('');
-
-  document.getElementById('insight-revenue').innerHTML=`<strong>Revenue Performance:</strong> ${topBrand} leads with UGX ${fmt(topRev)} (${tRev?((topRev/tRev)*100).toFixed(0):'0'}% of total). ${brands.length} brands generating UGX ${fmt(tRev)} combined across ${wks.length} weeks.`;
-
-  // Revenue by brand bar
-  mk('rev-brand',{type:'bar',data:{labels:brands,datasets:[{label:'Revenue',data:brands.map(b=>sum(byBrand[b],'Revenue')),backgroundColor:brands.map((_,i)=>C[i%C.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fmt(v)}}}}});
-
-  // Weekly trend by brand
-  const wl=wks.map(w=>`Wk ${w}`);
-  mk('rev-trend',{type:'line',data:{labels:wl,datasets:brands.map((b,i)=>({label:b,data:wks.map(w=>sum((byBrand[b]||[]).filter(r=>r.Week===w),'Revenue')),borderColor:C[i%C.length],tension:.3,pointRadius:4,borderWidth:2}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:10}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}}});
-
-  // Share donut
-  mk('rev-share',{type:'doughnut',data:{labels:brands,datasets:[{data:brands.map(b=>sum(byBrand[b],'Revenue')),backgroundColor:brands.map((_,i)=>C[i%C.length]),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,cutout:'55%',plugins:{legend:{position:'right',labels:{usePointStyle:true,font:{size:10}}},tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return`${ctx.label}: UGX ${fmt(ctx.parsed)} (${((ctx.parsed/t)*100).toFixed(1)}%)`}}}}}}});
-
-  // WoW growth
-  const weeklyTotals=wks.map(w=>sum(rev.filter(r=>r.Week===w),'Revenue'));
-  const growth=weeklyTotals.map((v,i)=>i===0?0:weeklyTotals[i-1]?((v-weeklyTotals[i-1])/weeklyTotals[i-1]*100):0);
-  mk('rev-growth',{type:'bar',data:{labels:wl,datasets:[{label:'WoW Growth %',data:growth,backgroundColor:growth.map(v=>v>=0?'#2ECC71':'#E74C3C'),borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
-
-  // Table
-  const tbl=document.getElementById('rev-table');
-  if(rev.length){
-    let h='<table class="data-table"><thead><tr><th>Week</th><th>Enterprise</th><th>Revenue (UGX)</th><th>Dates</th></tr></thead><tbody>';
-    rev.sort((a,b)=>(a.Week||0)-(b.Week||0)).forEach(r=>{h+=`<tr><td>Wk ${r.Week||'—'}</td><td>${r.Enterprise||'—'}</td><td>${r.Revenue?'UGX '+r.Revenue.toLocaleString():'—'}</td><td>${r.Dates||'—'}</td></tr>`});
-    h+='</tbody></table>';tbl.innerHTML=h;
+  if (weeks.size > 0) {
+    var maxW = Math.max.apply(null, Array.from(weeks));
+    var minW = Math.min.apply(null, Array.from(weeks));
+    var yr = years.size > 0 ? Math.max.apply(null, Array.from(years).map(Number)) : 2026;
+    document.getElementById('date-range').textContent = 'Weeks ' + minW + '–' + maxW + ', ' + yr;
   }
 }
 
-// ========== ELEVATE ==========
-function renderElevate(){
-  const el=flt.elevate,wks=wkV(el),wl=wkL(el),byLoc=grp(el,'Hub Location'),locs=Object.keys(byLoc).sort();
-  const tE=sum(el,'New youth enrolled this week'),tA=sum(el,'New youth admitted this week'),tR=sum(el,'Number of Refugees');
-  document.getElementById('insight-elevate').innerHTML=`<strong>Elevate:</strong> ${fmt(tE)} enrolled, ${fmt(tA)} admitted, ${tR} refugees across ${locs.length} hubs.`;
-
-  mk('el-enroll',{type:'line',data:{labels:wl,datasets:locs.map((l,i)=>({label:l,data:wks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'New youth enrolled this week')),borderColor:C[i],tension:.3,pointRadius:5,borderWidth:2.5}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
-  mk('el-admit',{type:'bar',data:{labels:wl,datasets:locs.map((l,i)=>({label:l,data:wks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'New youth admitted this week')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
-  const tF=wks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Female admitted'));
-  const tM=wks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Male admitted'));
-  mk('el-gender',{type:'bar',data:{labels:wl,datasets:[{label:'Female',data:tF,backgroundColor:'#8172B3',borderRadius:4},{label:'Male',data:tM,backgroundColor:'#1B3A5C',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
-  mk('el-refugee',{type:'bar',data:{labels:wl,datasets:[{label:'Refugees',data:wks.map(w=>sum(el.filter(r=>r.Week===w),'Number of Refugees')),backgroundColor:'#E8632B',borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-
-  const t=document.getElementById('el-table');
-  if(el.length){const cols=['Week','Hub Location','New youth enrolled this week','New youth admitted this week','Number of Female admitted','Number of Male admitted','Number of Refugees'];let h='<table class="data-table"><thead><tr>'+cols.map(c=>`<th>${c.replace('this week','').trim()}</th>`).join('')+'</tr></thead><tbody>';el.forEach(r=>{h+='<tr>'+cols.map(c=>`<td>${r[c]!=null?(typeof r[c]==='number'?r[c].toLocaleString():r[c]):'—'}</td>`).join('')+'</tr>'});h+='</tbody></table>';t.innerHTML=h}
+/* ==== RENDER ALL ==== */
+function renderAll() {
+  try { renderKPIs(); } catch(e) { console.warn('KPI error:', e); }
+  try { renderOverview(); } catch(e) { console.warn('Overview error:', e); }
+  try { renderRevenue(); } catch(e) { console.warn('Revenue error:', e); }
+  try { renderElevate(); } catch(e) { console.warn('Elevate error:', e); }
+  try { renderEmployment(); } catch(e) { console.warn('Employment error:', e); }
+  try { renderMicrofinance(); } catch(e) { console.warn('Microfinance error:', e); }
+  try { renderHub(); } catch(e) { console.warn('Hub error:', e); }
+  try { renderGroup(); } catch(e) { console.warn('Group error:', e); }
 }
 
-// ========== EMPLOYMENT ==========
-function renderEmployment(){
-  const em=flt.employment,wks=wkV(em),wl=wkL(em),byLoc=grp(em,'Program'),locs=Object.keys(byLoc).sort();
-  const tp=sum(em,'New placements secured this week'),ti=sum(em,'Total income earned this week');
-  document.getElementById('insight-employment').innerHTML=`<strong>Employment:</strong> ${tp} placements, UGX ${fmt(ti)} income across ${locs.length} locations.`;
-
-  mk('em-place',{type:'bar',data:{labels:wl,datasets:locs.map((l,i)=>({label:l,data:wks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'New placements secured this week')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
-  mk('em-income',{type:'line',data:{labels:wl,datasets:[{label:'Income',data:wks.map(w=>sum(em.filter(r=>r.Week===w),'Total income earned this week')),borderColor:'#2ECC71',backgroundColor:'#2ECC7130',fill:true,tension:.3,pointRadius:5,borderWidth:2.5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}}});
-  mk('em-projects',{type:'bar',data:{labels:wl,datasets:locs.map((l,i)=>({label:l,data:wks.map(w=>sum((byLoc[l]||[]).filter(r=>r.Week===w),'Number of active projects this week')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
-  mk('em-cumul',{type:'line',data:{labels:wl,datasets:locs.map((l,i)=>{let c=0;return{label:l,data:wks.map(w=>{c+=sum((byLoc[l]||[]).filter(r=>r.Week===w),'New placements secured this week');return c}),borderColor:C[i],tension:.3,pointRadius:5,borderWidth:2.5}})},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+/* ==== KPIs ==== */
+function renderKPIs() {
+  // Revenue
+  var rv = FDATA.Revenue;
+  if (rv && rv.rows.length) {
+    document.getElementById('k-rev').textContent = fmtUGX(sum(rv.rows, 'Revenue'));
+  }
+  // Enrollments
+  var el = FDATA.Elevate;
+  if (el && el.rows.length) {
+    var ec = col(el.headers, 'enrolled');
+    if (ec) document.getElementById('k-enr').textContent = fmtN(sum(el.rows, ec));
+  }
+  // Placements
+  var em = FDATA.Employment;
+  if (em && em.rows.length) {
+    var pc = col(em.headers, 'New placements');
+    if (pc) document.getElementById('k-plc').textContent = fmtN(sum(em.rows, pc));
+  }
+  // Loans
+  var mf = FDATA.Microfinance;
+  if (mf && mf.rows.length) {
+    var lc = col(mf.headers, 'Loans disbursed this week');
+    if (lc) document.getElementById('k-loan').textContent = fmtN(sum(mf.rows, lc));
+  }
+  // Hub Revenue
+  var hb = FDATA.Hub;
+  if (hb && hb.rows.length) {
+    var hrc = col(hb.headers, 'Weekly Revenue');
+    if (hrc) document.getElementById('k-hub').textContent = fmtUGX(sum(hb.rows, hrc));
+  }
+  // Hires
+  var gr = FDATA['era92 Group'];
+  if (gr && gr.rows.length) {
+    var hc = col(gr.headers, 'Hires');
+    if (hc) document.getElementById('k-hire').textContent = fmtN(sum(gr.rows, hc));
+  }
 }
 
-// ========== MICROFINANCE ==========
-function renderMicrofinance(){
-  const mf=flt.microfinance,wks=wkV(mf),wl=wkL(mf);
-  const td=sum(mf,'Total Loans Disbursed this week'),tc=sum(mf,'Actual Weekly repayment collected');
-  document.getElementById('insight-mf').innerHTML=`<strong>Microfinance:</strong> UGX ${fmt(td)} disbursed, UGX ${fmt(tc)} collected.`;
+/* ==== OVERVIEW ==== */
+function renderOverview() {
+  var rv = FDATA.Revenue;
+  if (rv && rv.rows.length) {
+    // Revenue by brand
+    var bb = {};
+    rv.rows.forEach(function(r) { var b = r.Enterprise; bb[b] = (bb[b]||0) + N(r.Revenue); });
+    var brands = Object.keys(bb).sort(function(a,b){ return bb[b]-bb[a]; });
+    mkBar('c-ov-brand', brands, [{ label:'Revenue (UGX)', data:brands.map(function(b){return bb[b];}) }]);
 
-  mk('mf-coll',{type:'bar',data:{labels:wl,datasets:[{label:'Goal',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Weekly Collection Goal')),backgroundColor:'#1B3A5C90',borderRadius:4},{label:'Actual',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Actual Weekly repayment collected')),backgroundColor:'#2ECC71',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+    // Weekly trend
+    var wk = col(rv.headers, 'Week');
+    if (wk) {
+      var bw = byWeek(rv.rows, wk);
+      var wl = bw.weeks.map(function(w){return 'W'+w;});
+      mkLine('c-ov-revtrend', wl, [{ label:'Total Revenue', data:bw.weeks.map(function(w){ return sum(bw.groups[w],'Revenue'); }), color:'#E8632B' }]);
+    }
+  }
 
-  const rates=wks.map(w=>{const rows=mf.filter(r=>r.Week===w);const rate=rows.reduce((s,r)=>s+(r['Repayment rate (% paid vs expected this week)']||0),0)/(rows.length||1);return+(rate*100).toFixed(1)});
-  mk('mf-rate',{type:'line',data:{labels:wl,datasets:[{label:'Rate %',data:rates,borderColor:'#E8632B',backgroundColor:'#E8632B20',fill:true,tension:.3,pointRadius:6,borderWidth:3},{label:'100% Target',data:wks.map(()=>100),borderColor:'#95A5A6',borderDash:[6,4],borderWidth:2,pointRadius:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
+  // Enrollment by location
+  var el = FDATA.Elevate;
+  if (el && el.rows.length) {
+    var wc = col(el.headers, 'Week');
+    var ec = col(el.headers, 'enrolled');
+    var lc2 = col(el.headers, 'Hub Location');
+    if (wc && ec) {
+      var bw2 = byWeek(el.rows, wc);
+      var wl2 = bw2.weeks.map(function(w){return 'W'+w;});
+      if (lc2) {
+        var locs = ['Lungujja','Katanga','Jinja','Namayemba'];
+        mkBar('c-ov-enroll', wl2, locs.map(function(loc){
+          return { label:loc, data:bw2.weeks.map(function(w){ return sum(bw2.groups[w].filter(function(r){return r[lc2]===loc;}), ec); }), color:LOC_COLORS[loc] };
+        }), true);
+      } else {
+        mkBar('c-ov-enroll', wl2, [{ label:'Enrollments', data:bw2.weeks.map(function(w){ return sum(bw2.groups[w], ec); }) }]);
+      }
+    }
+  }
 
-  mk('mf-loans',{type:'bar',data:{labels:wl,datasets:[{label:'Disbursed',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Total Loans Disbursed this week')),backgroundColor:'#3498DB',borderRadius:4},{label:'Borrowers',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Total active borrowers')),type:'line',borderColor:'#8172B3',borderWidth:2.5,pointRadius:5,yAxisID:'y1'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}},y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false}}}}});
+  // Placements
+  var em = FDATA.Employment;
+  if (em && em.rows.length) {
+    var wc3 = col(em.headers, 'Week');
+    var pc = col(em.headers, 'New placements');
+    if (wc3 && pc) {
+      var bw3 = byWeek(em.rows, wc3);
+      mkBar('c-ov-place', bw3.weeks.map(function(w){return 'W'+w;}), [{ label:'Placements', data:bw3.weeks.map(function(w){ return sum(bw3.groups[w], pc); }), color:'#2ECC71' }]);
+    }
+  }
 
-  mk('mf-risk',{type:'bar',data:{labels:wl,datasets:[{label:'Late',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Number of late repayments this week')),backgroundColor:'#F39C12',borderRadius:4},{label:'At Risk',data:wks.map(w=>sum(mf.filter(r=>r.Week===w),'Number of loans at risk (30+ days overdue)')),backgroundColor:'#E74C3C',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+  // Microfinance
+  var mf = FDATA.Microfinance;
+  if (mf && mf.rows.length) {
+    var wc4 = col(mf.headers, 'Week');
+    var dc = col(mf.headers, 'Loans disbursed this week');
+    if (wc4 && dc) {
+      var bw4 = byWeek(mf.rows, wc4);
+      mkBar('c-ov-loans', bw4.weeks.map(function(w){return 'W'+w;}), [{ label:'Loans', data:bw4.weeks.map(function(w){ return sum(bw4.groups[w], dc); }), color:'#3498DB' }]);
+    }
+  }
+
+  var loaded = Object.keys(FDATA).filter(function(k){ return FDATA[k] && FDATA[k].rows && FDATA[k].rows.length > 0; });
+  document.getElementById('ins-overview').innerHTML = '<strong>Dashboard Overview:</strong> Showing live data from ' + loaded.length + ' sources. Use filters to drill down by week, quarter, brand, or location.';
 }
 
-// ========== HUB ==========
-function renderHub(){
-  const hub=flt.hub,wks=wkV(hub),wl=wkL(hub);
-  const tr=sum(hub,'Weekly Revenue'),te=sum(hub,'Events Hosted');
-  document.getElementById('insight-hub').innerHTML=`<strong>Hub:</strong> UGX ${fmt(tr)} revenue, ${te} events.`;
+/* ==== REVENUE ==== */
+function renderRevenue() {
+  var rv = FDATA.Revenue;
+  if (!rv || !rv.rows.length) return;
 
-  const rev=wks.map(w=>sum(hub.filter(r=>r.Week===w),'Weekly Revenue'));
-  const mx=Math.max(...rev);
-  mk('hub-rev',{type:'bar',data:{labels:wl,datasets:[{label:'Revenue',data:rev,backgroundColor:rev.map(v=>v===mx?'#E8632B':'#1B3A5C'),borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+  var bb = {};
+  rv.rows.forEach(function(r) { bb[r.Enterprise] = (bb[r.Enterprise]||0) + N(r.Revenue); });
+  var brands = Object.keys(bb).sort(function(a,b){ return bb[b]-bb[a]; });
+  mkBar('c-rv-bar', brands, [{ label:'Revenue (UGX)', data:brands.map(function(b){return bb[b];}) }]);
+  mkDonut('c-rv-donut', brands, brands.map(function(b){return bb[b];}));
 
-  mk('hub-events',{type:'bar',data:{labels:wl,datasets:[{label:'Events',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'Events Hosted')),backgroundColor:'#2ECC71',borderRadius:4},{label:'Attendance',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'Event attendance')),backgroundColor:'#3498DB',borderRadius:4},{label:'Foot Traffic',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'Total daily foot traffic')),type:'line',borderColor:'#8172B3',borderWidth:2.5,pointRadius:5}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+  // Trend by brand
+  var bw = byWeek(rv.rows, 'Week');
+  var wl = bw.weeks.map(function(w){return 'W'+w;});
+  mkLine('c-rv-trend', wl, brands.slice(0,6).map(function(b){
+    return { label:b, data:bw.weeks.map(function(w){ return sum(bw.groups[w].filter(function(r){return r.Enterprise===b;}), 'Revenue'); }), color:BRAND_COLORS[b] };
+  }));
 
-  mk('hub-prospects',{type:'line',data:{labels:wl,datasets:[{label:'Prospects',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'Numbers of Prospects ')),borderColor:'#1B3A5C',tension:.3,pointRadius:6,borderWidth:2.5},{label:'Partnerships',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'New partnerships / visitors')),borderColor:'#E8632B',tension:.3,pointRadius:6,borderWidth:2.5}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
-
-  mk('hub-social',{type:'bar',data:{labels:wl,datasets:[{label:'Posts',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'No. of Social Media Posts ')),backgroundColor:'#3498DB',borderRadius:4},{label:'Bookings',data:wks.map(w=>sum(hub.filter(r=>r.Week===w),'No. of bookings')),backgroundColor:'#F39C12',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+  var total = Object.values(bb).reduce(function(s,v){return s+v;},0);
+  document.getElementById('ins-revenue').innerHTML = '<strong>Revenue:</strong> ' + fmtUGX(total) + ' total. Top brand: ' + brands[0] + ' (' + fmtUGX(bb[brands[0]]) + ').';
 }
 
-// ========== MARKETING ==========
-function renderMarketing(){
-  const mk2=flt.marketing;
-  const wks=[...new Set(mk2.map(r=>r.Week).filter(Boolean))].sort((a,b)=>a-b);
-  const wl=wks.map(w=>`Wk ${w}`);
-  const byBrand=grp(mk2,'Enterprise');
-  const brands=Object.keys(byBrand).filter(b=>b!=='Unknown').sort();
+/* ==== ELEVATE ==== */
+function renderElevate() {
+  var el = FDATA.Elevate;
+  if (!el || !el.rows.length) return;
+  var h = el.headers;
+  var wc = col(h,'Week'), lc = col(h,'Hub Location');
+  var ec = col(h,'enrolled'), ac = col(h,'admitted'), mc = col(h,'Male'), fc = col(h,'Female'), rc = col(h,'Refugee');
 
-  const tf=sum(mk2,'New Followers'),tp=sum(mk2,'Posts published');
-  document.getElementById('insight-mk').innerHTML=`<strong>Marketing:</strong> ${fmt(tf)} new followers, ${tp} posts across ${brands.length} brands.`;
+  if (!wc) return;
+  var bw = byWeek(el.rows, wc);
+  var wl = bw.weeks.map(function(w){return 'W'+w;});
+  var locs = ['Lungujja','Katanga','Jinja','Namayemba'];
 
-  mk('mk-reach',{type:'bar',data:{labels:wl,datasets:brands.map((b,i)=>({label:b,data:wks.map(w=>sum((byBrand[b]||[]).filter(r=>r.Week===w),'Weekly Reach')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:10}}}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}});
+  // Enrollment by hub
+  if (ec && lc) {
+    mkBar('c-el-enroll', wl, locs.map(function(loc){
+      return { label:loc, data:bw.weeks.map(function(w){ return sum(bw.groups[w].filter(function(r){return r[lc]===loc;}), ec); }), color:LOC_COLORS[loc] };
+    }), true);
+  }
 
-  mk('mk-followers',{type:'bar',data:{labels:wl,datasets:brands.map((b,i)=>({label:b,data:wks.map(w=>sum((byBrand[b]||[]).filter(r=>r.Week===w),'New Followers')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+  // Admissions by hub
+  if (ac && lc) {
+    mkBar('c-el-admit', wl, locs.map(function(loc){
+      return { label:loc, data:bw.weeks.map(function(w){ return sum(bw.groups[w].filter(function(r){return r[lc]===loc;}), ac); }), color:LOC_COLORS[loc] };
+    }), true);
+  }
 
-  mk('mk-posts',{type:'bar',data:{labels:wl,datasets:brands.map((b,i)=>({label:b,data:wks.map(w=>sum((byBrand[b]||[]).filter(r=>r.Week===w),'Posts published')),backgroundColor:C[i],borderRadius:4}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+  // Gender
+  if (mc && fc) {
+    mkBar('c-el-gender', wl, [
+      { label:'Male', data:bw.weeks.map(function(w){ return sum(bw.groups[w], mc); }), color:'#3498DB' },
+      { label:'Female', data:bw.weeks.map(function(w){ return sum(bw.groups[w], fc); }), color:'#E74C3C' }
+    ], true);
+  }
 
-  const creative=mk2.filter(r=>r.Enterprise&&r.Enterprise.includes('Creative'));
-  const crWks=[...new Set(creative.map(r=>r.Week).filter(Boolean))].sort((a,b)=>a-b);
-  const crL=crWks.map(w=>`Wk ${w}`);
-  mk('mk-leads',{type:'bar',data:{labels:crL,datasets:[{label:'Leads',data:crWks.map(w=>sum(creative.filter(r=>r.Week===w),'Leads')),backgroundColor:'#3498DB',borderRadius:4},{label:'Outbound',data:crWks.map(w=>sum(creative.filter(r=>r.Week===w),'outbound touches')),backgroundColor:'#1B3A5C',borderRadius:4},{label:'Calls',data:crWks.map(w=>sum(creative.filter(r=>r.Week===w),'Discovery calls held')),backgroundColor:'#2ECC71',borderRadius:4},{label:'Deals',data:crWks.map(w=>sum(creative.filter(r=>r.Week===w),'Deals closed')),backgroundColor:'#E8632B',borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true}}},scales:{y:{beginAtZero:true}}}});
+  // Refugees
+  if (rc) {
+    mkBar('c-el-refugee', wl, [{ label:'Refugees', data:bw.weeks.map(function(w){ return sum(bw.groups[w], rc); }), color:'#9B59B6' }]);
+  }
+
+  var totalE = ec ? sum(el.rows, ec) : 0;
+  var totalA = ac ? sum(el.rows, ac) : 0;
+  document.getElementById('ins-elevate').innerHTML = '<strong>Elevate:</strong> ' + fmtN(totalE) + ' enrolled, ' + fmtN(totalA) + ' admitted across ' + bw.weeks.length + ' weeks.';
 }
 
-// ========== BOOT ==========
-loadAllData();
+/* ==== EMPLOYMENT ==== */
+function renderEmployment() {
+  var em = FDATA.Employment;
+  if (!em || !em.rows.length) return;
+  var h = em.headers;
+  var wc = col(h,'Week');
+  var pc = col(h,'New placements');
+  var ic = col(h,'income earned');
+  var prc = col(h,'active projects');
+  var intc = col(h,'interviews completed');
+
+  if (!wc) return;
+  var bw = byWeek(em.rows, wc);
+  var wl = bw.weeks.map(function(w){return 'W'+w;});
+
+  if (pc) mkBar('c-em-place', wl, [{ label:'New Placements', data:bw.weeks.map(function(w){ return sum(bw.groups[w], pc); }), color:'#2ECC71' }]);
+  if (ic) mkLine('c-em-income', wl, [{ label:'Income (UGX)', data:bw.weeks.map(function(w){ return sum(bw.groups[w], ic); }), color:'#27ae60' }]);
+  if (prc) mkLine('c-em-proj', wl, [{ label:'Active Projects', data:bw.weeks.map(function(w){ return sum(bw.groups[w], prc); }), color:'#3498DB' }]);
+  if (intc) mkBar('c-em-intv', wl, [{ label:'Interviews', data:bw.weeks.map(function(w){ return sum(bw.groups[w], intc); }), color:'#F39C12' }]);
+
+  var tp = pc ? sum(em.rows, pc) : 0;
+  var ti = ic ? sum(em.rows, ic) : 0;
+  document.getElementById('ins-employment').innerHTML = '<strong>Employment:</strong> ' + fmtN(tp) + ' placements, ' + fmtUGX(ti) + ' income earned.';
+}
+
+/* ==== MICROFINANCE ==== */
+function renderMicrofinance() {
+  var mf = FDATA.Microfinance;
+  if (!mf || !mf.rows.length) return;
+  var h = mf.headers;
+  var wc = col(h,'Week');
+  var dc = col(h,'Loans disbursed this week');
+  var ratec = col(h,'Repayment rate');
+  var riskc = col(h,'loans at risk');
+  var collc = col(h,'Actual Weekly repayment');
+  var goalc = col(h,'Weekly Collection Goal');
+
+  if (!wc) return;
+  var bw = byWeek(mf.rows, wc);
+  var wl = bw.weeks.map(function(w){return 'W'+w;});
+
+  if (dc) mkBar('c-mf-disb', wl, [{ label:'Loans Disbursed', data:bw.weeks.map(function(w){ return sum(bw.groups[w], dc); }), color:'#3498DB' }]);
+
+  if (ratec) {
+    mkLine('c-mf-rate', wl, [{ label:'Repayment Rate %', data:bw.weeks.map(function(w){
+      var vals = bw.groups[w].map(function(r){ return N(r[ratec]); }).filter(function(v){ return v > 0; });
+      return vals.length ? vals.reduce(function(s,v){return s+v;},0)/vals.length : 0;
+    }), color:'#27ae60' }]);
+  }
+
+  if (riskc) mkBar('c-mf-risk', wl, [{ label:'Loans at Risk', data:bw.weeks.map(function(w){ return sum(bw.groups[w], riskc); }), color:'#E74C3C' }]);
+
+  if (dc && collc) {
+    mkBar('c-mf-coll', wl, [
+      { label:'Disbursed', data:bw.weeks.map(function(w){ return sum(bw.groups[w], dc); }), color:'#3498DB' },
+      { label:'Collected', data:bw.weeks.map(function(w){ return sum(bw.groups[w], collc); }), color:'#27ae60' }
+    ]);
+  } else if (dc && goalc) {
+    mkBar('c-mf-coll', wl, [
+      { label:'Disbursed', data:bw.weeks.map(function(w){ return sum(bw.groups[w], dc); }), color:'#3498DB' },
+      { label:'Collection Goal', data:bw.weeks.map(function(w){ return sum(bw.groups[w], goalc); }), color:'#F39C12' }
+    ]);
+  }
+
+  var td = dc ? sum(mf.rows, dc) : 0;
+  document.getElementById('ins-micro').innerHTML = '<strong>Microfinance:</strong> ' + fmtN(td) + ' loans disbursed.';
+}
+
+/* ==== HUB ==== */
+function renderHub() {
+  var hb = FDATA.Hub;
+  if (!hb || !hb.rows.length) return;
+  var h = hb.headers;
+  var wc = col(h,'Week');
+  var revc = col(h,'Weekly Revenue');
+  var evtc = col(h,'Events Hosted');
+  var partc = col(h,'partnerships');
+  var prosc = col(h,'Prospects');
+  var footc = col(h,'foot traffic');
+  var clic = col(h,'active clients');
+  var bookc = col(h,'bookings');
+
+  if (!wc) return;
+  var bw = byWeek(hb.rows, wc);
+  var wl = bw.weeks.map(function(w){return 'W'+w;});
+
+  if (revc) mkBar('c-hb-rev', wl, [{ label:'Revenue (UGX)', data:bw.weeks.map(function(w){ return sum(bw.groups[w], revc); }), color:'#2ECC71' }]);
+
+  var evtSeries = [];
+  if (evtc) evtSeries.push({ label:'Events', data:bw.weeks.map(function(w){ return sum(bw.groups[w], evtc); }), color:'#3498DB' });
+  if (partc) evtSeries.push({ label:'Partnerships', data:bw.weeks.map(function(w){ return sum(bw.groups[w], partc); }), color:'#9B59B6' });
+  if (evtSeries.length) mkBar('c-hb-evt', wl, evtSeries);
+
+  var prosSeries = [];
+  if (prosc) prosSeries.push({ label:'Prospects', data:bw.weeks.map(function(w){ return sum(bw.groups[w], prosc); }), color:'#F39C12' });
+  if (footc) prosSeries.push({ label:'Foot Traffic', data:bw.weeks.map(function(w){ return sum(bw.groups[w], footc); }), color:'#E8632B' });
+  if (prosSeries.length) mkLine('c-hb-pros', wl, prosSeries);
+
+  var cliSeries = [];
+  if (clic) cliSeries.push({ label:'Active Clients', data:bw.weeks.map(function(w){ return sum(bw.groups[w], clic); }), color:'#1ABC9C' });
+  if (bookc) cliSeries.push({ label:'Bookings', data:bw.weeks.map(function(w){ return sum(bw.groups[w], bookc); }), color:'#E74C3C' });
+  if (cliSeries.length) mkLine('c-hb-cli', wl, cliSeries);
+
+  var tr = revc ? sum(hb.rows, revc) : 0;
+  document.getElementById('ins-hub').innerHTML = '<strong>Hub:</strong> ' + fmtUGX(tr) + ' total revenue.';
+}
+
+/* ==== GROUP HR ==== */
+function renderGroup() {
+  var gr = FDATA['era92 Group'];
+  if (!gr || !gr.rows.length) return;
+  var h = gr.headers;
+  var wc = col(h,'Week');
+  var appc = col(h,'Applications Received');
+  var intc = col(h,'interviews completed');
+  var hirec = col(h,'Hires');
+  var trainc = col(h,'Trainings');
+
+  if (!wc) return;
+  var bw = byWeek(gr.rows, wc);
+  var wl = bw.weeks.map(function(w){return 'W'+w;});
+
+  var s1 = [];
+  if (appc) s1.push({ label:'Applications', data:bw.weeks.map(function(w){ return sum(bw.groups[w], appc); }), color:'#3498DB' });
+  if (intc) s1.push({ label:'Interviews', data:bw.weeks.map(function(w){ return sum(bw.groups[w], intc); }), color:'#F39C12' });
+  if (s1.length) mkBar('c-gr-app', wl, s1);
+
+  var s2 = [];
+  if (hirec) s2.push({ label:'Hires', data:bw.weeks.map(function(w){ return sum(bw.groups[w], hirec); }), color:'#2ECC71' });
+  if (trainc) s2.push({ label:'Trainings', data:bw.weeks.map(function(w){ return sum(bw.groups[w], trainc); }), color:'#9B59B6' });
+  if (s2.length) mkBar('c-gr-hire', wl, s2);
+
+  var th = hirec ? sum(gr.rows, hirec) : 0;
+  document.getElementById('ins-group').innerHTML = '<strong>Group HR:</strong> ' + fmtN(th) + ' total hires.';
+}
+
+/* ==== INIT ==== */
+google.charts.load('current');
+google.charts.setOnLoadCallback(function() {
+  loadDashboard();
+});
+
+function loadDashboard() {
+  var loadEl = document.getElementById('loading');
+  var itemsEl = document.getElementById('load-items');
+
+  // Sheets to load
+  var sheets = [
+    { name:'Elevate', fn: function(){ return queryGSheet(KPI_ID, 'Elevate'); } },
+    { name:'Employment', fn: function(){ return queryGSheet(KPI_ID, 'Employment'); } },
+    { name:'Microfinance', fn: function(){ return queryGSheet(KPI_ID, 'Microfinance'); } },
+    { name:'Hub', fn: function(){ return queryGSheet(KPI_ID, 'Hub'); } },
+    { name:'era92 Group', fn: function(){ return queryGSheet(KPI_ID, 'era92 Group'); } },
+    { name:'Revenue', fn: queryRevenue }
+  ];
+
+  var statuses = {};
+  sheets.forEach(function(s) { statuses[s.name] = 'wait'; });
+
+  function updateLoadUI() {
+    itemsEl.innerHTML = Object.keys(statuses).map(function(name) {
+      var st = statuses[name];
+      var icon = st === 'ok' ? '\u2713' : st === 'err' ? '\u2717' : '\u23F3';
+      return '<span class="' + st + '">' + icon + ' ' + name + '</span>';
+    }).join(' ');
+  }
+  updateLoadUI();
+
+  var promises = sheets.map(function(s) {
+    return s.fn()
+      .then(function(data) {
+        DATA[s.name] = data;
+        statuses[s.name] = 'ok';
+        updateLoadUI();
+      })
+      .catch(function(err) {
+        console.warn('Failed:', s.name, err.message);
+        ERRORS.push(s.name + ': ' + err.message);
+        statuses[s.name] = 'err';
+        updateLoadUI();
+      });
+  });
+
+  Promise.all(promises).then(function() {
+    // Copy raw -> filtered
+    Object.keys(DATA).forEach(function(k) { FDATA[k] = DATA[k]; });
+
+    // Hide loading
+    loadEl.classList.add('hidden');
+
+    // Show errors
+    if (ERRORS.length > 0) {
+      var banner = document.getElementById('error-banner');
+      banner.innerHTML = '<strong>Some sheets failed:</strong> ' + ERRORS.join('; ') +
+        '<br><small>Make sure sheets are published to web (File > Share > Publish to web).</small>';
+      banner.classList.add('show');
+    }
+
+    document.getElementById('last-updated').textContent = 'Updated: ' + new Date().toLocaleString();
+
+    populateFilters();
+    renderAll();
+  }).catch(function(err) {
+    // This shouldn't happen since individual errors are caught, but just in case
+    loadEl.classList.add('hidden');
+    var banner = document.getElementById('error-banner');
+    banner.innerHTML = '<strong>Error:</strong> ' + err.message;
+    banner.classList.add('show');
+  });
+}
 </script>
 </body>
 </html>
