@@ -46,7 +46,7 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
   font-weight: 800; font-size: 11px; color: white; letter-spacing: -0.5px;
 }
 .sidebar-logo .logo-text { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-.sidebar-logo .logo-sub { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.sidebar-logo .logo-sub { font-size: 11px; font-weight: 400; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.3px; }
 
 .sidebar-nav { padding: 20px 14px; flex: 1; overflow-y: auto; }
 .nav-label { font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; padding: 12px 14px 8px; }
@@ -56,10 +56,10 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
   color: var(--text-muted); transition: all 0.2s;
 }
 .nav-item:hover { background: var(--bg-input); color: var(--text); }
-.nav-item.active { background: var(--orange); color: white; }
+.nav-item.active { background: linear-gradient(135deg, var(--orange) 0%, #e8613e 100%); color: white; box-shadow: 0 2px 12px rgba(252,94,39,0.25); }
 .nav-item .nav-icon { width: 18px; height: 18px; opacity: 0.65; flex-shrink:0; }
 .nav-item.active .nav-icon { opacity: 1; }
-.nav-item .nav-badge { font-family:'Instrument Serif',serif; font-style:italic; font-size:11px; margin-left:auto; opacity:0.6; }
+.nav-item .nav-badge { font-size: 10px; font-weight: 500; margin-left: auto; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
 
 .sidebar-footer {
   padding: 18px 24px; border-top: 1px solid var(--border);
@@ -77,7 +77,7 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
 }
 .topbar-left { display: flex; align-items: center; gap: 16px; }
 .topbar-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
-.topbar-subtitle { font-family:'Instrument Serif',serif; font-style:italic; font-size:14px; color:var(--text-muted); }
+.topbar-subtitle { font-size: 13px; font-weight: 400; color: var(--text-muted); }
 .topbar-right { display: flex; align-items: center; gap: 14px; }
 .currency-toggle {
   display: flex; background: var(--bg-input); border-radius: 8px; overflow: hidden; border: 1px solid var(--border);
@@ -116,11 +116,12 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
 }
 .kpi-card {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 22px;
+  border-radius: 14px; padding: 22px; transition: border-color 0.2s, transform 0.2s;
 }
+.kpi-card:hover { border-color: rgba(137,214,229,0.25); transform: translateY(-2px); }
 .kpi-card .kpi-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; font-weight: 600; }
-.kpi-card .kpi-value { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
-.kpi-card .kpi-sub { font-family:'Instrument Serif',serif; font-style:italic; font-size:13px; color:var(--text-dim); margin-top:4px; }
+.kpi-card .kpi-value { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 32px; font-weight: 400; color: #89D6E5; letter-spacing: -0.5px; }
+.kpi-card .kpi-sub { font-size: 12px; font-weight: 500; color: var(--text-dim); margin-top: 4px; }
 .kpi-card .kpi-icon {
   width: 34px; height: 34px; border-radius: 10px; display: flex;
   align-items: center; justify-content: center; margin-bottom: 14px; font-size: 16px; font-weight:700;
@@ -136,11 +137,12 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
 
 .card {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 26px;
+  border-radius: 14px; padding: 26px; transition: border-color 0.2s;
 }
+.card:hover { border-color: rgba(252,94,39,0.2); }
 .card h3 {
-  font-size: 12px; font-weight: 700; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 18px;
+  font-size: 11px; font-weight: 700; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;
 }
 .card canvas { width: 100% !important; max-height: 280px; }
 
@@ -151,14 +153,13 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
   font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;
 }
 .section-header p {
-  font-family: 'Instrument Serif', serif; font-style: italic;
-  font-size: 15px; color: var(--text-muted);
+  font-size: 14px; font-weight: 400; color: var(--text-muted);
 }
 
 .insight-box {
-  background: rgba(252,94,39,0.06); border-left: 3px solid var(--orange);
+  background: rgba(252,94,39,0.04); border-left: 3px solid var(--orange);
   padding: 16px 20px; border-radius: 0 12px 12px 0; margin-bottom: 22px;
-  font-size: 13px; line-height: 1.7; color: var(--text-muted);
+  font-size: 13px; line-height: 1.7; color: var(--text-muted); backdrop-filter: blur(4px);
 }
 .insight-box strong { color: var(--orange); }
 
@@ -173,7 +174,7 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
   border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 24px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .load-status { font-size: 15px; color: var(--text-muted); font-weight: 500; }
-.load-status-sub { font-family:'Instrument Serif',serif; font-style:italic; font-size:13px; color:var(--text-dim); margin-top:6px; }
+.load-status-sub { font-size: 12px; font-weight: 400; color: var(--text-dim); margin-top: 6px; }
 .load-items { margin-top: 16px; font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .load-items span { padding: 4px 12px; border-radius: 14px; font-weight:500; }
 .load-items .ok { background: rgba(74,222,128,0.1); color: var(--positive); }
@@ -581,6 +582,7 @@ var LOC_COLORS = {'Lungujja':'#FC5E27','Katanga':'#89D6E5','Jinja':'#4ADE80','Na
 var KPI_ID = '1fch4Cy5sj1VQ_iaD2NK0SoOE1EKjsr_7YmZSUt3-ngU';
 var REV_ID = '1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI';
 var ALLTIME_ID = '1m7xnMfXTRID7bUi3tO4Q7v3LpPwXRntz3hQQ6zOuhtQ';
+var FUND_AT_ID = '1wP9nQA9-gO8LWZh0kGP48cxYJ__MpWFBmApuQhrECzU';
 
 var DATA = {}, FDATA = {}, CHARTS = {}, ERRORS = [];
 var CURRENCY = 'UGX';
@@ -765,12 +767,13 @@ function mk(id, type, labels, datasets, opts) {
 
 function mkLine(id, labels, series) {
   mk(id, 'line', labels, series.map(function(s,i){
-    return { label:s.label, data:s.data, borderColor:s.color||COLORS[i%COLORS.length], backgroundColor:(s.color||COLORS[i%COLORS.length])+'18', borderWidth:2.5, fill:false, tension:0.4, pointRadius:3, pointBackgroundColor:s.color||COLORS[i%COLORS.length] };
+    var c = s.color||COLORS[i%COLORS.length];
+    return { label:s.label, data:s.data, borderColor:c, backgroundColor:c+'20', borderWidth:2, fill:true, tension:0.35, pointRadius:4, pointHoverRadius:6, pointBackgroundColor:'#292a30', pointBorderColor:c, pointBorderWidth:2 };
   }));
 }
 function mkBar(id, labels, series, stacked) {
-  var ds = series.map(function(s,i){ return { label:s.label, data:s.data, backgroundColor:(s.color||COLORS[i%COLORS.length])+'CC', borderRadius:8, borderSkipped:false }; });
-  var opts = stacked ? { scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#6b6862'}},y:{stacked:true,beginAtZero:true,grid:{color:'#2a2b31'},ticks:{color:'#6b6862'}}} } : undefined;
+  var ds = series.map(function(s,i){ return { label:s.label, data:s.data, backgroundColor:(s.color||COLORS[i%COLORS.length])+'B3', hoverBackgroundColor:(s.color||COLORS[i%COLORS.length])+'E6', borderRadius:6, borderSkipped:false, maxBarThickness:48 }; });
+  var opts = stacked ? { scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#6b6862',font:{size:11}}},y:{stacked:true,beginAtZero:true,grid:{color:'#2a2b31'},ticks:{color:'#6b6862',font:{size:11}}}} } : undefined;
   mk(id, 'bar', labels, ds, opts);
 }
 function mkDonut(id, labels, data) {
@@ -1077,34 +1080,50 @@ function renderFund() {
   var loansCountc = col(h,'Loans disbursed this week');
   var firstTimec = col(h,'first-time borrowers');
 
-  // KPIs
-  var totalDisbursed = dc ? sum(mf.rows, dc) : 0;
-  document.getElementById('kf-loans').textContent = fmtMoney(totalDisbursed);
-  document.getElementById('kf-loans-alt').textContent = fmtMoneyAlt(totalDisbursed);
+  // All-time Fund data
+  var fat = FDATA.FundAllTime;
+  var fundLoanCol = fat && fat.headers ? col(fat.headers, 'Loan Amount', 'Loan') : null;
+  var fundStatusCol = fat && fat.headers ? col(fat.headers, 'Status') : null;
+  var fundYearCol = fat && fat.headers ? col(fat.headers, 'Year') : null;
+
+  // KPIs — prefer all-time data if available
+  if (fat && fat.rows && fat.rows.length && fundLoanCol) {
+    var atTotalDisbursed = sum(fat.rows, fundLoanCol);
+    document.getElementById('kf-loans').textContent = fmtMoney(atTotalDisbursed);
+    document.getElementById('kf-loans-alt').textContent = fmtMoneyAlt(atTotalDisbursed);
+    document.getElementById('kf-portfolio').textContent = fmtMoney(atTotalDisbursed);
+    document.getElementById('kf-portfolio-alt').textContent = fmtMoneyAlt(atTotalDisbursed);
+    var atAvgLoan = atTotalDisbursed / fat.rows.length;
+    document.getElementById('kf-avg').textContent = fmtMoney(atAvgLoan);
+    document.getElementById('kf-avg-alt').textContent = fmtMoneyAlt(atAvgLoan);
+    document.getElementById('kf-borrowers').textContent = fmtN(fat.rows.length);
+    var activeCount = fundStatusCol ? fat.rows.filter(function(r){ return r[fundStatusCol] && String(r[fundStatusCol]).toLowerCase()==='active'; }).length : fat.rows.length;
+    document.getElementById('kf-borrowers-alt').textContent = activeCount + ' active borrowers';
+  } else {
+    var totalDisbursed = dc ? sum(mf.rows, dc) : 0;
+    document.getElementById('kf-loans').textContent = fmtMoney(totalDisbursed);
+    document.getElementById('kf-loans-alt').textContent = fmtMoneyAlt(totalDisbursed);
+    document.getElementById('kf-portfolio').textContent = fmtMoney(totalDisbursed);
+    document.getElementById('kf-portfolio-alt').textContent = fmtMoneyAlt(totalDisbursed);
+    if (avgc) {
+      var avgVals = mf.rows.map(function(r){ return N(r[avgc]); }).filter(function(v){ return v > 0; });
+      var avgLoan = avgVals.length ? avgVals.reduce(function(s,v){return s+v;},0)/avgVals.length : 0;
+      document.getElementById('kf-avg').textContent = fmtMoney(avgLoan);
+      document.getElementById('kf-avg-alt').textContent = fmtMoneyAlt(avgLoan);
+    }
+    if (borrowersc) {
+      var bVals = mf.rows.map(function(r){ return N(r[borrowersc]); }).filter(function(v){ return v > 0; });
+      var maxBorrowers = bVals.length ? Math.max.apply(null, bVals) : 0;
+      document.getElementById('kf-borrowers').textContent = fmtN(maxBorrowers);
+      document.getElementById('kf-borrowers-alt').textContent = 'peak active borrowers';
+    }
+  }
 
   if (ratec) {
     var rvals = mf.rows.map(function(r){ return N(r[ratec]); }).filter(function(v){ return v > 0; });
     var avgR = rvals.length ? rvals.reduce(function(s,v){return s+v;},0)/rvals.length : 0;
     document.getElementById('kf-rate').textContent = avgR.toFixed(1) + '%';
     document.getElementById('kf-rate-alt').textContent = 'avg weekly rate';
-  }
-
-  // Loan portfolio = total disbursed (as portfolio proxy)
-  document.getElementById('kf-portfolio').textContent = fmtMoney(totalDisbursed);
-  document.getElementById('kf-portfolio-alt').textContent = fmtMoneyAlt(totalDisbursed);
-
-  if (avgc) {
-    var avgVals = mf.rows.map(function(r){ return N(r[avgc]); }).filter(function(v){ return v > 0; });
-    var avgLoan = avgVals.length ? avgVals.reduce(function(s,v){return s+v;},0)/avgVals.length : 0;
-    document.getElementById('kf-avg').textContent = fmtMoney(avgLoan);
-    document.getElementById('kf-avg-alt').textContent = fmtMoneyAlt(avgLoan);
-  }
-
-  if (borrowersc) {
-    var bVals = mf.rows.map(function(r){ return N(r[borrowersc]); }).filter(function(v){ return v > 0; });
-    var maxBorrowers = bVals.length ? Math.max.apply(null, bVals) : 0;
-    document.getElementById('kf-borrowers').textContent = fmtN(maxBorrowers);
-    document.getElementById('kf-borrowers-alt').textContent = 'peak active borrowers';
   }
 
   if (!wc) return;
@@ -1124,7 +1143,20 @@ function renderFund() {
     { label:'Collection Goal', data:bw.weeks.map(function(w){ return sum(bw.groups[w], goalc); }), color:'#FBBF24' }
   ]);
 
-  document.getElementById('ins-fund').innerHTML = '<strong>Fund</strong> — ' + fmtMoney(totalDisbursed) + ' total disbursed. Avg repayment rate: ' + document.getElementById('kf-rate').textContent + '.';
+  // All-time Fund charts
+  if (fat && fat.rows && fat.rows.length && fundLoanCol) {
+    // Reuse c-mf-coll for Loans by Year from all-time data
+    if (fundYearCol) {
+      var byYr = {};
+      fat.rows.forEach(function(r) { var y = r[fundYearCol]; if(y) { byYr[y] = (byYr[y]||0) + N(r[fundLoanCol]); } });
+      var yrs = Object.keys(byYr).sort();
+      if (yrs.length) mkBar('c-mf-coll', yrs, [{ label:'Total Loans by Year', data:yrs.map(function(y){return byYr[y];}), color:'#89D6E5' }]);
+    }
+  }
+
+  var dispTotal = (fat && fat.rows && fat.rows.length && fundLoanCol) ? fmtMoney(sum(fat.rows, fundLoanCol)) : fmtMoney(dc ? sum(mf.rows, dc) : 0);
+  var dispBorrowers = (fat && fat.rows) ? fmtN(fat.rows.length) : '';
+  document.getElementById('ins-fund').innerHTML = '<strong>Fund</strong> — ' + dispTotal + ' total disbursed across ' + dispBorrowers + ' borrowers. Avg repayment rate: ' + document.getElementById('kf-rate').textContent + '.';
 }
 
 /* ==== HUB ==== */
@@ -1210,8 +1242,9 @@ google.charts.setOnLoadCallback(function() {
     { name:'Revenue', fn: queryRevenue }
   ];
 
-  // Try loading the all-time data sheet (may fail if not published)
+  // Try loading the all-time data sheets (may fail if not published)
   sheets.push({ name:'AllTime', fn: function(){ return queryGSheet(ALLTIME_ID, 'Sheet1'); } });
+  sheets.push({ name:'FundAllTime', fn: function(){ return queryGSheet(FUND_AT_ID, 'Sheet1'); } });
 
   var statuses = {};
   sheets.forEach(function(s) { statuses[s.name] = 'wait'; });
