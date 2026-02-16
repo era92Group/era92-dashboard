@@ -453,10 +453,10 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-sub" id="kf-rate-alt"></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background:rgba(252,94,39,0.1);color:var(--orange)">P</div>
-        <div class="kpi-label">Loan Portfolio</div>
-        <div class="kpi-value" id="kf-portfolio">—</div>
-        <div class="kpi-sub" id="kf-portfolio-alt"></div>
+        <div class="kpi-icon" style="background:rgba(252,94,39,0.1);color:var(--orange)">Y</div>
+        <div class="kpi-label">This Year's Loans Disbursed</div>
+        <div class="kpi-value" id="kf-thisyear">—</div>
+        <div class="kpi-sub" id="kf-thisyear-alt"></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">A</div>
@@ -469,6 +469,12 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-label">Total Borrowers</div>
         <div class="kpi-value" id="kf-borrowers">—</div>
         <div class="kpi-sub" id="kf-borrowers-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(74,222,128,0.1);color:var(--positive)">$</div>
+        <div class="kpi-label">Fund Revenue</div>
+        <div class="kpi-value" id="kf-revenue">—</div>
+        <div class="kpi-sub" id="kf-revenue-alt"></div>
       </div>
     </div>
     <div class="page-content">
@@ -483,7 +489,11 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
       </div>
       <div class="grid2">
         <div class="card"><h3>Loans at Risk (30+ days)</h3><canvas id="c-mf-risk"></canvas></div>
+        <div class="card"><h3>Collection Goal vs Actual Collected</h3><canvas id="c-mf-goalvscoll"></canvas></div>
+      </div>
+      <div class="grid2">
         <div class="card"><h3>Disbursed vs Collected</h3><canvas id="c-mf-coll"></canvas></div>
+        <div class="card"><h3>Fund Revenue (from Revenue Tracker)</h3><canvas id="c-mf-fundrev"></canvas></div>
       </div>
     </div>
   </div>
@@ -1073,12 +1083,13 @@ function renderCreative() {
 function renderFund() {
   var mf = FDATA.Microfinance;
   if (!mf || !mf.rows.length) return;
-  var h = mf.headers, wc = col(h,'Week');
-  var dc = col(h,'Total Loans Disbursed this week'), ratec = col(h,'Repayment rate'), riskc = col(h,'loans at risk');
-  var collc = col(h,'Actual Weekly repayment'), goalc = col(h,'Weekly Collection Goal');
-  var avgc = col(h,'Average loan size'), borrowersc = col(h,'active borrowers');
+  var h = mf.headers, wc = col(h,'Week'), yrc = col(h,'Year');
+  var dc = col(h,'Total Amount Disbursed this week','Total Loans Disbursed this week');
+  var ratec = col(h,'Repayment rate'), riskc = col(h,'loans at risk');
+  var collc = col(h,'Actual Weekly repayment','Actual Weekly repayment collected');
+  var goalc = col(h,'Weekly Collection Goal');
+  var avgc = col(h,'Average loan size'), borrowersc = col(h,'active borrowers','Total active borrowers');
   var loansCountc = col(h,'Loans disbursed this week');
-  var firstTimec = col(h,'first-time borrowers');
 
   // All-time Fund data
   var fat = FDATA.FundAllTime;
@@ -1086,13 +1097,11 @@ function renderFund() {
   var fundStatusCol = fat && fat.headers ? col(fat.headers, 'Status') : null;
   var fundYearCol = fat && fat.headers ? col(fat.headers, 'Year') : null;
 
-  // KPIs — prefer all-time data if available
+  // === KPI: Total Loans Disbursed (all-time) ===
   if (fat && fat.rows && fat.rows.length && fundLoanCol) {
     var atTotalDisbursed = sum(fat.rows, fundLoanCol);
     document.getElementById('kf-loans').textContent = fmtMoney(atTotalDisbursed);
     document.getElementById('kf-loans-alt').textContent = fmtMoneyAlt(atTotalDisbursed);
-    document.getElementById('kf-portfolio').textContent = fmtMoney(atTotalDisbursed);
-    document.getElementById('kf-portfolio-alt').textContent = fmtMoneyAlt(atTotalDisbursed);
     var atAvgLoan = atTotalDisbursed / fat.rows.length;
     document.getElementById('kf-avg').textContent = fmtMoney(atAvgLoan);
     document.getElementById('kf-avg-alt').textContent = fmtMoneyAlt(atAvgLoan);
@@ -1103,13 +1112,11 @@ function renderFund() {
     var totalDisbursed = dc ? sum(mf.rows, dc) : 0;
     document.getElementById('kf-loans').textContent = fmtMoney(totalDisbursed);
     document.getElementById('kf-loans-alt').textContent = fmtMoneyAlt(totalDisbursed);
-    document.getElementById('kf-portfolio').textContent = fmtMoney(totalDisbursed);
-    document.getElementById('kf-portfolio-alt').textContent = fmtMoneyAlt(totalDisbursed);
     if (avgc) {
       var avgVals = mf.rows.map(function(r){ return N(r[avgc]); }).filter(function(v){ return v > 0; });
-      var avgLoan = avgVals.length ? avgVals.reduce(function(s,v){return s+v;},0)/avgVals.length : 0;
-      document.getElementById('kf-avg').textContent = fmtMoney(avgLoan);
-      document.getElementById('kf-avg-alt').textContent = fmtMoneyAlt(avgLoan);
+      var avgLoan2 = avgVals.length ? avgVals.reduce(function(s,v){return s+v;},0)/avgVals.length : 0;
+      document.getElementById('kf-avg').textContent = fmtMoney(avgLoan2);
+      document.getElementById('kf-avg-alt').textContent = fmtMoneyAlt(avgLoan2);
     }
     if (borrowersc) {
       var bVals = mf.rows.map(function(r){ return N(r[borrowersc]); }).filter(function(v){ return v > 0; });
@@ -1119,6 +1126,21 @@ function renderFund() {
     }
   }
 
+  // === KPI: This Year's Loans Disbursed (from weekly Microfinance sheet, filtered by current year) ===
+  var currentYear = new Date().getFullYear();
+  if (dc && yrc) {
+    var thisYearRows = mf.rows.filter(function(r){ return N(r[yrc]) === currentYear; });
+    var thisYearTotal = sum(thisYearRows, dc);
+    document.getElementById('kf-thisyear').textContent = fmtMoney(thisYearTotal);
+    document.getElementById('kf-thisyear-alt').textContent = fmtMoneyAlt(thisYearTotal);
+  } else if (dc) {
+    // Fallback: sum all if no year column
+    var allTotal = sum(mf.rows, dc);
+    document.getElementById('kf-thisyear').textContent = fmtMoney(allTotal);
+    document.getElementById('kf-thisyear-alt').textContent = 'all recorded weeks';
+  }
+
+  // === KPI: Repayment Rate ===
   if (ratec) {
     var rvals = mf.rows.map(function(r){ return N(r[ratec]); }).filter(function(v){ return v > 0; });
     var avgR = rvals.length ? rvals.reduce(function(s,v){return s+v;},0)/rvals.length : 0;
@@ -1126,37 +1148,67 @@ function renderFund() {
     document.getElementById('kf-rate-alt').textContent = 'avg weekly rate';
   }
 
+  // === KPI: Fund Revenue (from Revenue Tracker) ===
+  var rv = FDATA.Revenue;
+  if (rv && rv.rows.length) {
+    var fundRevRows = rv.rows.filter(function(r){
+      var e = (r.Enterprise || '').toLowerCase();
+      return e.indexOf('fund') >= 0 || e.indexOf('finance') >= 0;
+    });
+    var fundRevTotal = sum(fundRevRows, 'Revenue');
+    document.getElementById('kf-revenue').textContent = fmtMoney(fundRevTotal);
+    document.getElementById('kf-revenue-alt').textContent = fmtMoneyAlt(fundRevTotal);
+  }
+
   if (!wc) return;
   var bw = byWeek(mf.rows, wc), wl = bw.weeks.map(function(w){return 'W'+w;});
+
+  // Chart: Amount Disbursed by Week
   if (dc) mkBar('c-mf-disb', wl, [{ label:'Amount Disbursed', data:bw.weeks.map(function(w){ return sum(bw.groups[w], dc); }), color:'#89D6E5' }]);
+
+  // Chart: Repayment Rate
   if (ratec) mkLine('c-mf-rate', wl, [{ label:'Repayment Rate %', data:bw.weeks.map(function(w){
     var vals = bw.groups[w].map(function(r){ return N(r[ratec]); }).filter(function(v){ return v > 0; });
     return vals.length ? vals.reduce(function(s,v){return s+v;},0)/vals.length : 0;
   }), color:'#4ADE80' }]);
+
+  // Chart: Loans at Risk
   if (riskc) mkBar('c-mf-risk', wl, [{ label:'Loans at Risk', data:bw.weeks.map(function(w){ return sum(bw.groups[w], riskc); }), color:'#F87171' }]);
+
+  // Chart: Goal vs Collected (bar for goal, line for collected)
+  if (goalc && collc) {
+    var goalData = bw.weeks.map(function(w){ return sum(bw.groups[w], goalc); });
+    var collData = bw.weeks.map(function(w){ return sum(bw.groups[w], collc); });
+    // Mixed chart: bars for goal, line for actual collected
+    mk('c-mf-goalvscoll', 'bar', wl, [
+      { label:'Collection Goal', data:goalData, backgroundColor:'#FBBF24B3', hoverBackgroundColor:'#FBBF24E6', borderRadius:6, borderSkipped:false, maxBarThickness:48, order:2 },
+      { label:'Actual Collected', data:collData, type:'line', borderColor:'#4ADE80', backgroundColor:'#4ADE8020', borderWidth:2, fill:true, tension:0.35, pointRadius:4, pointHoverRadius:6, pointBackgroundColor:'#292a30', pointBorderColor:'#4ADE80', pointBorderWidth:2, order:1 }
+    ]);
+  } else if (goalc) {
+    mkBar('c-mf-goalvscoll', wl, [{ label:'Collection Goal', data:bw.weeks.map(function(w){ return sum(bw.groups[w], goalc); }), color:'#FBBF24' }]);
+  }
+
+  // Chart: Disbursed vs Collected
   if (dc && collc) mkBar('c-mf-coll', wl, [
     { label:'Disbursed', data:bw.weeks.map(function(w){ return sum(bw.groups[w], dc); }), color:'#89D6E5' },
     { label:'Collected', data:bw.weeks.map(function(w){ return sum(bw.groups[w], collc); }), color:'#4ADE80' }
   ]);
-  else if (dc && goalc) mkBar('c-mf-coll', wl, [
-    { label:'Disbursed', data:bw.weeks.map(function(w){ return sum(bw.groups[w], dc); }), color:'#89D6E5' },
-    { label:'Collection Goal', data:bw.weeks.map(function(w){ return sum(bw.groups[w], goalc); }), color:'#FBBF24' }
-  ]);
 
-  // All-time Fund charts
-  if (fat && fat.rows && fat.rows.length && fundLoanCol) {
-    // Reuse c-mf-coll for Loans by Year from all-time data
-    if (fundYearCol) {
-      var byYr = {};
-      fat.rows.forEach(function(r) { var y = r[fundYearCol]; if(y) { byYr[y] = (byYr[y]||0) + N(r[fundLoanCol]); } });
-      var yrs = Object.keys(byYr).sort();
-      if (yrs.length) mkBar('c-mf-coll', yrs, [{ label:'Total Loans by Year', data:yrs.map(function(y){return byYr[y];}), color:'#89D6E5' }]);
+  // Chart: Fund Revenue by Week (from Revenue Tracker)
+  if (rv && rv.rows.length) {
+    var fundRevRows2 = rv.rows.filter(function(r){
+      var e = (r.Enterprise || '').toLowerCase();
+      return e.indexOf('fund') >= 0 || e.indexOf('finance') >= 0;
+    });
+    if (fundRevRows2.length) {
+      var fBw = byWeek(fundRevRows2, 'Week');
+      mkBar('c-mf-fundrev', fBw.weeks.map(function(w){return 'W'+w;}), [{ label:'Fund Revenue', data:fBw.weeks.map(function(w){ return sum(fBw.groups[w], 'Revenue'); }), color:'#4ADE80' }]);
     }
   }
 
   var dispTotal = (fat && fat.rows && fat.rows.length && fundLoanCol) ? fmtMoney(sum(fat.rows, fundLoanCol)) : fmtMoney(dc ? sum(mf.rows, dc) : 0);
   var dispBorrowers = (fat && fat.rows) ? fmtN(fat.rows.length) : '';
-  document.getElementById('ins-fund').innerHTML = '<strong>Fund</strong> — ' + dispTotal + ' total disbursed across ' + dispBorrowers + ' borrowers. Avg repayment rate: ' + document.getElementById('kf-rate').textContent + '.';
+  document.getElementById('ins-fund').innerHTML = '<strong>Fund</strong> — ' + dispTotal + ' total disbursed across ' + dispBorrowers + ' borrowers. ' + currentYear + ' disbursements: ' + document.getElementById('kf-thisyear').textContent + '. Avg repayment rate: ' + document.getElementById('kf-rate').textContent + '.';
 }
 
 /* ==== HUB ==== */
