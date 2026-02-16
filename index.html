@@ -884,7 +884,7 @@ function renderOverviewKPIs() {
 
   var mf = FDATA.Microfinance;
   if (mf && mf.rows.length) {
-    var lc = col(mf.headers, 'Total Loans Disbursed this week');
+    var lc = col(mf.headers, 'Total Amount Disbursed', 'Total Amount Disbursed this week', 'Total Loans Disbursed this week');
     if (lc) {
       var lv = sum(mf.rows, lc);
       document.getElementById('k-loan').textContent = fmtMoney(lv);
@@ -957,7 +957,7 @@ function renderOverview() {
   }
   var mf = FDATA.Microfinance;
   if (mf && mf.rows.length) {
-    var wc4 = col(mf.headers, 'Week'), dc = col(mf.headers, 'Total Loans Disbursed this week');
+    var wc4 = col(mf.headers, 'Week'), dc = col(mf.headers, 'Total Amount Disbursed', 'Total Amount Disbursed this week', 'Total Loans Disbursed this week');
     if (wc4 && dc) {
       var bw4 = byWeek(mf.rows, wc4);
       mkBar('c-ov-loans', bw4.weeks.map(function(w){return 'W'+w;}), [{ label:'Disbursed', data:bw4.weeks.map(function(w){ return sum(bw4.groups[w], dc); }), color:'#89D6E5' }]);
@@ -1129,7 +1129,7 @@ function renderFund() {
   var mf = FDATA.Microfinance;
   if (!mf || !mf.rows.length) return;
   var h = mf.headers, wc = col(h,'Week'), yrc = col(h,'Year');
-  var dc = col(h,'Total Amount Disbursed this week','Total Loans Disbursed this week');
+  var dc = col(h,'Total Amount Disbursed','Total Amount Disbursed this week','Total Loans Disbursed this week');
   var ratec = col(h,'Repayment rate'), riskc = col(h,'loans at risk');
   var collc = col(h,'Actual Weekly repayment','Actual Weekly repayment collected');
   var goalc = col(h,'Weekly Collection Goal');
