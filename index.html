@@ -370,6 +370,18 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-value" id="ke-attend">—</div>
         <div class="kpi-sub" id="ke-attend-alt"></div>
       </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(74,222,128,0.1);color:var(--positive)">J</div>
+        <div class="kpi-label">Job Placements</div>
+        <div class="kpi-value" id="ke-placements">—</div>
+        <div class="kpi-sub" id="ke-placements-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">P</div>
+        <div class="kpi-label">Employment Partners</div>
+        <div class="kpi-value" id="ke-partners">—</div>
+        <div class="kpi-sub" id="ke-partners-alt"></div>
+      </div>
     </div>
     <div class="page-content">
       <div class="section-header">
@@ -402,16 +414,16 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-sub" id="kc-rev-alt"></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background:rgba(74,222,128,0.1);color:var(--positive)">J</div>
-        <div class="kpi-label">Jobs Created</div>
-        <div class="kpi-value" id="kc-jobs">—</div>
-        <div class="kpi-sub" id="kc-jobs-alt"></div>
+        <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">R</div>
+        <div class="kpi-label">Number of Retainers</div>
+        <div class="kpi-value" id="kc-retainers">—</div>
+        <div class="kpi-sub" id="kc-retainers-alt"></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">P</div>
-        <div class="kpi-label">Employment Partners</div>
-        <div class="kpi-value" id="kc-partners">—</div>
-        <div class="kpi-sub" id="kc-partners-alt"></div>
+        <div class="kpi-icon" style="background:rgba(74,222,128,0.1);color:var(--positive)">A</div>
+        <div class="kpi-label">Avg Retainer Value</div>
+        <div class="kpi-value" id="kc-avgretainer">—</div>
+        <div class="kpi-sub" id="kc-avgretainer-alt"></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">I</div>
@@ -593,6 +605,7 @@ var KPI_ID = '1fch4Cy5sj1VQ_iaD2NK0SoOE1EKjsr_7YmZSUt3-ngU';
 var REV_ID = '1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI';
 var ALLTIME_ID = '1m7xnMfXTRID7bUi3tO4Q7v3LpPwXRntz3hQQ6zOuhtQ';
 var FUND_AT_ID = '1wP9nQA9-gO8LWZh0kGP48cxYJ__MpWFBmApuQhrECzU';
+var RETAINER_ID = '15FV8X-czVT1AGWJAX3l7a-BGf2mpcYFlY0QAdJKho4M';
 
 var DATA = {}, FDATA = {}, CHARTS = {}, ERRORS = [];
 var CURRENCY = 'UGX';
@@ -1005,6 +1018,21 @@ function renderElevate() {
     document.getElementById('ke-attend-alt').textContent = 'avg weekly';
   }
 
+  // Job Placements & Employment Partners (from Employment sheet)
+  var em2 = FDATA.Employment;
+  if (em2 && em2.rows.length) {
+    var pc2 = col(em2.headers, 'New placements');
+    var clientsc2 = col(em2.headers, 'clients served');
+    if (pc2) {
+      document.getElementById('ke-placements').textContent = fmtN(sum(em2.rows, pc2));
+      document.getElementById('ke-placements-alt').textContent = 'from era92 Creative';
+    }
+    if (clientsc2) {
+      document.getElementById('ke-partners').textContent = fmtN(sum(em2.rows, clientsc2));
+      document.getElementById('ke-partners-alt').textContent = 'clients served';
+    }
+  }
+
   if (!wc) return;
   var bw = byWeek(el.rows, wc), wl = bw.weeks.map(function(w){return 'W'+w;});
   var locs = ['Lungujja','Katanga','Jinja','Namayemba'];
@@ -1057,13 +1085,29 @@ function renderCreative() {
     document.getElementById('kc-rev-alt').textContent = fmtMoneyAlt(revTotal);
   }
 
-  var totalJobs = pc ? sum(em.rows, pc) : 0;
-  document.getElementById('kc-jobs').textContent = fmtN(totalJobs);
-  document.getElementById('kc-jobs-alt').textContent = 'placements secured';
-
-  var totalClients = clientsc ? sum(em.rows, clientsc) : 0;
-  document.getElementById('kc-partners').textContent = fmtN(totalClients);
-  document.getElementById('kc-partners-alt').textContent = 'clients served';
+  // Retainer KPIs from Retainer sheet
+  var ret = FDATA.Retainers;
+  if (ret && ret.rows && ret.rows.length) {
+    var priceCol = col(ret.headers, 'Price');
+    var statusCol = col(ret.headers, 'Status');
+    var totalRetainers = ret.rows.length;
+    document.getElementById('kc-retainers').textContent = fmtN(totalRetainers);
+    var happyCount = statusCol ? ret.rows.filter(function(r){ return r[statusCol] && String(r[statusCol]).toLowerCase().indexOf('happy') >= 0; }).length : 0;
+    var newCount = statusCol ? ret.rows.filter(function(r){ return r[statusCol] && String(r[statusCol]).toLowerCase().indexOf('new') >= 0; }).length : 0;
+    document.getElementById('kc-retainers-alt').textContent = happyCount + ' happy, ' + newCount + ' new';
+    if (priceCol) {
+      var prices = ret.rows.map(function(r){ return N(r[priceCol]); }).filter(function(v){ return v > 0; });
+      var avgRetainer = prices.length ? prices.reduce(function(s,v){return s+v;},0)/prices.length : 0;
+      // Retainer prices are in USD in the sheet
+      if (CURRENCY === 'UGX') {
+        document.getElementById('kc-avgretainer').textContent = 'UGX ' + fmtN(avgRetainer * FX_RATE);
+        document.getElementById('kc-avgretainer-alt').textContent = '≈ $' + Math.round(avgRetainer).toLocaleString();
+      } else {
+        document.getElementById('kc-avgretainer').textContent = '$' + Math.round(avgRetainer).toLocaleString();
+        document.getElementById('kc-avgretainer-alt').textContent = '≈ UGX ' + fmtN(avgRetainer * FX_RATE);
+      }
+    }
+  }
 
   var totalIncome = ic ? sum(em.rows, ic) : 0;
   document.getElementById('kc-income').textContent = fmtMoney(totalIncome);
@@ -1076,7 +1120,8 @@ function renderCreative() {
   if (prc) mkLine('c-cr-proj', wl, [{ label:'Active Projects', data:bw.weeks.map(function(w){ return sum(bw.groups[w], prc); }), color:'#2690B1' }]);
   if (intc) mkBar('c-cr-intv', wl, [{ label:'Interviews', data:bw.weeks.map(function(w){ return sum(bw.groups[w], intc); }), color:'#FBBF24' }]);
 
-  document.getElementById('ins-creative').innerHTML = '<strong>Creative</strong> — ' + fmtN(totalJobs) + ' job placements, ' + fmtMoney(totalIncome) + ' income earned.';
+  var retainerCount = (ret && ret.rows) ? ret.rows.length : 0;
+  document.getElementById('ins-creative').innerHTML = '<strong>Creative</strong> — ' + retainerCount + ' active retainer clients, ' + fmtMoney(totalIncome) + ' income earned. Revenue: ' + document.getElementById('kc-rev').textContent + '.';
 }
 
 /* ==== FUND (Microfinance) ==== */
@@ -1297,6 +1342,7 @@ google.charts.setOnLoadCallback(function() {
   // Try loading the all-time data sheets (may fail if not published)
   sheets.push({ name:'AllTime', fn: function(){ return queryGSheet(ALLTIME_ID, 'Sheet1'); } });
   sheets.push({ name:'FundAllTime', fn: function(){ return queryGSheet(FUND_AT_ID, 'Sheet1'); } });
+  sheets.push({ name:'Retainers', fn: function(){ return queryGSheet(RETAINER_ID, 'Sheet1'); } });
 
   var statuses = {};
   sheets.forEach(function(s) { statuses[s.name] = 'wait'; });
