@@ -252,6 +252,11 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Revenue Tracker
     </div>
+    <div class="nav-item" data-tab="financials">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Financials (QB)
+      <span class="nav-badge">NEW</span>
+    </div>
   </div>
   <div class="sidebar-footer">
     <span id="last-updated"></span>
@@ -426,10 +431,10 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-sub" id="kc-avgretainer-alt"></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">I</div>
-        <div class="kpi-label">Income Earned</div>
-        <div class="kpi-value" id="kc-income">—</div>
-        <div class="kpi-sub" id="kc-income-alt"></div>
+        <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">T</div>
+        <div class="kpi-label">Total Value Retainers</div>
+        <div class="kpi-value" id="kc-totalret">—</div>
+        <div class="kpi-sub" id="kc-totalret-alt"></div>
       </div>
     </div>
     <div class="page-content">
@@ -440,7 +445,7 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
       <div class="insight-box" id="ins-creative"><strong>Loading...</strong></div>
       <div class="grid2">
         <div class="card"><h3>New Placements by Week</h3><canvas id="c-cr-place"></canvas></div>
-        <div class="card"><h3>Income Earned (Weekly)</h3><canvas id="c-cr-income"></canvas></div>
+        <div class="card"><h3>Retainer Value by Client</h3><canvas id="c-cr-retval"></canvas></div>
       </div>
       <div class="grid2">
         <div class="card"><h3>Active Projects</h3><canvas id="c-cr-proj"></canvas></div>
@@ -581,6 +586,67 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
     </div>
   </div>
 
+  <!-- ==================== FINANCIALS (QB) ==================== -->
+  <div class="section" id="sec-financials">
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(252,94,39,0.1);color:var(--orange)">$</div>
+        <div class="kpi-label">Total Revenue (QB)</div>
+        <div class="kpi-value" id="kq-rev">—</div>
+        <div class="kpi-sub" id="kq-rev-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(248,113,113,0.1);color:var(--negative)">E</div>
+        <div class="kpi-label">Total Expenses</div>
+        <div class="kpi-value" id="kq-exp">—</div>
+        <div class="kpi-sub" id="kq-exp-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(74,222,128,0.1);color:var(--positive)">N</div>
+        <div class="kpi-label">Net Income</div>
+        <div class="kpi-value" id="kq-net">—</div>
+        <div class="kpi-sub" id="kq-net-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">M</div>
+        <div class="kpi-label">Gross Margin</div>
+        <div class="kpi-value" id="kq-margin">—</div>
+        <div class="kpi-sub" id="kq-margin-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">C</div>
+        <div class="kpi-label">Cash Position</div>
+        <div class="kpi-value" id="kq-cash">—</div>
+        <div class="kpi-sub" id="kq-cash-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(167,139,250,0.1);color:#A78BFA">R</div>
+        <div class="kpi-label">Accounts Receivable</div>
+        <div class="kpi-value" id="kq-ar">—</div>
+        <div class="kpi-sub" id="kq-ar-alt"></div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="section-header">
+        <h2>Financials</h2>
+        <p>QuickBooks P&amp;L, expenses &amp; cash flow</p>
+      </div>
+      <div class="insight-box" id="ins-financials"><strong>Connect QuickBooks:</strong> Upload the era92_QuickBooks_Template.xlsx to Google Sheets, sync your QuickBooks data, then share the Sheet ID to activate this section.</div>
+      <div class="grid2">
+        <div class="card"><h3>Revenue vs Expenses by Month</h3><canvas id="c-qb-revexp"></canvas></div>
+        <div class="card"><h3>Net Income by Month</h3><canvas id="c-qb-net"></canvas></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Revenue by Entity</h3><canvas id="c-qb-entity"></canvas></div>
+        <div class="card"><h3>Expense Breakdown</h3><canvas id="c-qb-expenses"></canvas></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Cash Flow by Entity</h3><canvas id="c-qb-cashflow"></canvas></div>
+        <div class="card"><h3>Gross Margin Trend</h3><canvas id="c-qb-margin"></canvas></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -606,6 +672,8 @@ var REV_ID = '1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI';
 var ALLTIME_ID = '1m7xnMfXTRID7bUi3tO4Q7v3LpPwXRntz3hQQ6zOuhtQ';
 var FUND_AT_ID = '1wP9nQA9-gO8LWZh0kGP48cxYJ__MpWFBmApuQhrECzU';
 var RETAINER_ID = '15FV8X-czVT1AGWJAX3l7a-BGf2mpcYFlY0QAdJKho4M';
+// QuickBooks data — replace with your Google Sheet ID after uploading era92_QuickBooks_Template.xlsx
+var QB_ID = '';  // e.g. '1ABCxyz...' — leave empty until connected
 
 var DATA = {}, FDATA = {}, CHARTS = {}, ERRORS = [];
 var CURRENCY = 'UGX';
@@ -627,7 +695,8 @@ var TAB_INFO = {
   creative:  { title:'era92 Creative',  sub:'employment & workforce development' },
   fund:      { title:'era92 Fund',      sub:'microfinance & financial inclusion' },
   hub:       { title:'era92 Hub',       sub:'co-working space & community' },
-  revenue:   { title:'Revenue Tracker', sub:'consolidated revenue across all brands' }
+  revenue:   { title:'Revenue Tracker', sub:'consolidated revenue across all brands' },
+  financials:{ title:'Financials', sub:'QuickBooks P&L, expenses & cash flow' }
 };
 
 document.querySelector('.sidebar-nav').addEventListener('click', function(e) {
@@ -861,6 +930,7 @@ function renderAll() {
   try { renderFund(); } catch(e) { console.warn('Fund:', e); }
   try { renderHub(); } catch(e) { console.warn('Hub:', e); }
   try { renderRevenue(); } catch(e) { console.warn('Revenue:', e); }
+  try { renderFinancials(); } catch(e) { console.warn('Financials:', e); }
 }
 
 /* ==== OVERVIEW KPIs ==== */
@@ -1087,9 +1157,11 @@ function renderCreative() {
 
   // Retainer KPIs from Retainer sheet
   var ret = FDATA.Retainers;
+  var totalRetainerValue = 0;
   if (ret && ret.rows && ret.rows.length) {
     var priceCol = col(ret.headers, 'Price');
     var statusCol = col(ret.headers, 'Status');
+    var nameCol = col(ret.headers, 'Company', 'Client', 'Name');
     var totalRetainers = ret.rows.length;
     document.getElementById('kc-retainers').textContent = fmtN(totalRetainers);
     var happyCount = statusCol ? ret.rows.filter(function(r){ return r[statusCol] && String(r[statusCol]).toLowerCase().indexOf('happy') >= 0; }).length : 0;
@@ -1098,30 +1170,44 @@ function renderCreative() {
     if (priceCol) {
       var prices = ret.rows.map(function(r){ return N(r[priceCol]); }).filter(function(v){ return v > 0; });
       var avgRetainer = prices.length ? prices.reduce(function(s,v){return s+v;},0)/prices.length : 0;
+      totalRetainerValue = prices.reduce(function(s,v){return s+v;}, 0);
       // Retainer prices are in USD in the sheet
       if (CURRENCY === 'UGX') {
         document.getElementById('kc-avgretainer').textContent = 'UGX ' + fmtN(avgRetainer * FX_RATE);
         document.getElementById('kc-avgretainer-alt').textContent = '≈ $' + Math.round(avgRetainer).toLocaleString();
+        document.getElementById('kc-totalret').textContent = 'UGX ' + fmtN(totalRetainerValue * FX_RATE);
+        document.getElementById('kc-totalret-alt').textContent = '≈ $' + Math.round(totalRetainerValue).toLocaleString();
       } else {
         document.getElementById('kc-avgretainer').textContent = '$' + Math.round(avgRetainer).toLocaleString();
         document.getElementById('kc-avgretainer-alt').textContent = '≈ UGX ' + fmtN(avgRetainer * FX_RATE);
+        document.getElementById('kc-totalret').textContent = '$' + Math.round(totalRetainerValue).toLocaleString();
+        document.getElementById('kc-totalret-alt').textContent = '≈ UGX ' + fmtN(totalRetainerValue * FX_RATE);
+      }
+
+      // Retainer Value by Client chart (top 15 by value)
+      if (nameCol) {
+        var clientData = ret.rows.map(function(r){ return { name: String(r[nameCol] || 'Unknown'), value: N(r[priceCol]) }; })
+          .filter(function(d){ return d.value > 0; })
+          .sort(function(a,b){ return b.value - a.value; })
+          .slice(0, 15);
+        var cLabels = clientData.map(function(d){ return d.name.length > 18 ? d.name.substring(0,16) + '...' : d.name; });
+        var cValues = clientData.map(function(d){ return CURRENCY === 'UGX' ? d.value * FX_RATE : d.value; });
+        mk('c-cr-retval', 'bar', cLabels, [
+          { label: 'Retainer Value (' + CURRENCY + ')', data: cValues, backgroundColor: '#89D6E5' }
+        ], { indexAxis: 'y' });
       }
     }
   }
 
-  var totalIncome = ic ? sum(em.rows, ic) : 0;
-  document.getElementById('kc-income').textContent = fmtMoney(totalIncome);
-  document.getElementById('kc-income-alt').textContent = fmtMoneyAlt(totalIncome);
-
   if (!wc) return;
   var bw = byWeek(em.rows, wc), wl = bw.weeks.map(function(w){return 'W'+w;});
   if (pc) mkBar('c-cr-place', wl, [{ label:'New Placements', data:bw.weeks.map(function(w){ return sum(bw.groups[w], pc); }), color:'#4ADE80' }]);
-  if (ic) mkLine('c-cr-income', wl, [{ label:'Income Earned', data:bw.weeks.map(function(w){ return sum(bw.groups[w], ic); }), color:'#89D6E5' }]);
   if (prc) mkLine('c-cr-proj', wl, [{ label:'Active Projects', data:bw.weeks.map(function(w){ return sum(bw.groups[w], prc); }), color:'#2690B1' }]);
   if (intc) mkBar('c-cr-intv', wl, [{ label:'Interviews', data:bw.weeks.map(function(w){ return sum(bw.groups[w], intc); }), color:'#FBBF24' }]);
 
   var retainerCount = (ret && ret.rows) ? ret.rows.length : 0;
-  document.getElementById('ins-creative').innerHTML = '<strong>Creative</strong> — ' + retainerCount + ' active retainer clients, ' + fmtMoney(totalIncome) + ' income earned. Revenue: ' + document.getElementById('kc-rev').textContent + '.';
+  var tvDisp = CURRENCY === 'UGX' ? ('UGX ' + fmtN(totalRetainerValue * FX_RATE)) : ('$' + Math.round(totalRetainerValue).toLocaleString());
+  document.getElementById('ins-creative').innerHTML = '<strong>Creative</strong> — ' + retainerCount + ' active retainer clients, ' + tvDisp + ' total retainer value. Revenue: ' + document.getElementById('kc-rev').textContent + '.';
 }
 
 /* ==== FUND (Microfinance) ==== */
@@ -1325,6 +1411,157 @@ function renderRevenue() {
   document.getElementById('ins-revenue').innerHTML = '<strong>Revenue</strong> — ' + fmtMoney(total) + ' total. Top brand: ' + brands[0] + ' (' + fmtMoney(bb[brands[0]]) + ').';
 }
 
+/* ==== FINANCIALS (QuickBooks) ==== */
+function renderFinancials() {
+  var pnl = FDATA.QB_PnL, rev = FDATA.QB_Revenue, exp = FDATA.QB_Expenses, cf = FDATA.QB_CashFlow;
+
+  // If no QB data connected, show placeholder message
+  if (!pnl && !rev && !exp && !cf) {
+    document.getElementById('ins-financials').innerHTML = '<strong>Connect QuickBooks:</strong> Upload the era92_QuickBooks_Template.xlsx to Google Sheets, sync your QuickBooks data, then paste the Sheet ID into the dashboard code to activate this section.';
+    return;
+  }
+
+  // === KPIs from Monthly P&L ===
+  if (pnl && pnl.rows.length) {
+    var h = pnl.headers;
+    var revCol = col(h, 'Revenue');
+    var cogsCol = col(h, 'COGS');
+    var expCol = col(h, 'Total OpEx');
+    var netCol = col(h, 'Net Income');
+
+    var totalRev = sum(pnl.rows, revCol);
+    var totalCogs = sum(pnl.rows, cogsCol);
+    var totalExp = sum(pnl.rows, expCol);
+    var totalNet = sum(pnl.rows, netCol);
+    var grossProfit = totalRev - totalCogs;
+    var grossMargin = totalRev > 0 ? (grossProfit / totalRev * 100) : 0;
+
+    document.getElementById('kq-rev').textContent = fmtMoney(totalRev);
+    document.getElementById('kq-rev-alt').textContent = fmtMoneyAlt(totalRev);
+    document.getElementById('kq-exp').textContent = fmtMoney(totalExp);
+    document.getElementById('kq-exp-alt').textContent = fmtMoneyAlt(totalExp);
+    document.getElementById('kq-net').textContent = fmtMoney(totalNet);
+    document.getElementById('kq-net-alt').textContent = fmtMoneyAlt(totalNet);
+    document.getElementById('kq-margin').textContent = grossMargin.toFixed(1) + '%';
+    document.getElementById('kq-margin-alt').textContent = 'gross margin';
+
+    // Revenue vs Expenses by Month chart
+    var monthCol = col(h, 'Month');
+    var byMonth = {};
+    pnl.rows.forEach(function(r) {
+      var m = r[monthCol];
+      if (!m) return;
+      if (!byMonth[m]) byMonth[m] = { rev: 0, exp: 0, net: 0, cogs: 0 };
+      byMonth[m].rev += N(r[revCol]);
+      byMonth[m].exp += N(r[expCol]);
+      byMonth[m].net += N(r[netCol]);
+      byMonth[m].cogs += N(r[cogsCol]);
+    });
+    var mLabels = Object.keys(byMonth);
+    mk('c-qb-revexp', 'bar', mLabels, [
+      { label: 'Revenue', data: mLabels.map(function(m){ return byMonth[m].rev; }), backgroundColor: '#4ADE80' },
+      { label: 'Expenses', data: mLabels.map(function(m){ return byMonth[m].exp; }), backgroundColor: '#F87171' }
+    ]);
+
+    // Net Income by Month
+    mk('c-qb-net', 'bar', mLabels, [
+      { label: 'Net Income', data: mLabels.map(function(m){ return byMonth[m].net; }),
+        backgroundColor: mLabels.map(function(m){ return byMonth[m].net >= 0 ? '#4ADE80' : '#F87171'; }) }
+    ]);
+
+    // Revenue by Entity
+    var entCol = col(h, 'Entity');
+    var byEnt = {};
+    pnl.rows.forEach(function(r) {
+      var e = r[entCol];
+      if (!e) return;
+      if (!byEnt[e]) byEnt[e] = 0;
+      byEnt[e] += N(r[revCol]);
+    });
+    var entLabels = Object.keys(byEnt).sort(function(a,b){ return byEnt[b] - byEnt[a]; });
+    mk('c-qb-entity', 'doughnut', entLabels, [
+      { data: entLabels.map(function(e){ return byEnt[e]; }),
+        backgroundColor: entLabels.map(function(e,i){ return COLORS[i % COLORS.length]; }) }
+    ]);
+
+    // Gross Margin Trend
+    mk('c-qb-margin', 'line', mLabels, [
+      { label: 'Gross Margin %',
+        data: mLabels.map(function(m){ return byMonth[m].rev > 0 ? ((byMonth[m].rev - byMonth[m].cogs) / byMonth[m].rev * 100) : 0; }),
+        borderColor: '#89D6E5', backgroundColor: 'rgba(137,214,229,0.1)', fill: true, tension: 0.4 }
+    ]);
+
+    // Insight box
+    document.getElementById('ins-financials').innerHTML = '<strong>P&L Summary:</strong> ' + fmtMoney(totalRev) + ' revenue, ' + fmtMoney(totalExp) + ' expenses, ' + fmtMoney(totalNet) + ' net income. Gross margin: ' + grossMargin.toFixed(1) + '%.';
+  }
+
+  // === Expense Breakdown from Expenses sheet ===
+  if (exp && exp.rows.length) {
+    var eh = exp.headers;
+    var catCol = col(eh, 'Category');
+    var amtCol = col(eh, 'Amount');
+    var byCat = {};
+    exp.rows.forEach(function(r) {
+      var c = r[catCol] || 'Uncategorized';
+      if (!byCat[c]) byCat[c] = 0;
+      byCat[c] += N(r[amtCol]);
+    });
+    var cats = Object.keys(byCat).sort(function(a,b){ return byCat[b] - byCat[a]; });
+    mk('c-qb-expenses', 'doughnut', cats, [
+      { data: cats.map(function(c){ return byCat[c]; }),
+        backgroundColor: cats.map(function(c,i){ return COLORS[i % COLORS.length]; }) }
+    ]);
+  }
+
+  // === Cash Flow by Entity ===
+  if (cf && cf.rows.length) {
+    var ch = cf.headers;
+    var cfEntCol = col(ch, 'Entity');
+    var closingCol = col(ch, 'Closing Balance');
+    var openCol = col(ch, 'Opening Balance');
+    var byCfEnt = {};
+    cf.rows.forEach(function(r) {
+      var e = r[cfEntCol];
+      if (!e) return;
+      if (!byCfEnt[e]) byCfEnt[e] = { open: 0, close: 0 };
+      byCfEnt[e].open += N(r[openCol]);
+      byCfEnt[e].close += N(r[closingCol]);
+    });
+    var cfEnts = Object.keys(byCfEnt);
+    mk('c-qb-cashflow', 'bar', cfEnts, [
+      { label: 'Opening Balance', data: cfEnts.map(function(e){ return byCfEnt[e].open; }), backgroundColor: '#89D6E5' },
+      { label: 'Closing Balance', data: cfEnts.map(function(e){ return byCfEnt[e].close; }), backgroundColor: '#2690B1' }
+    ]);
+  }
+
+  // === Accounts Receivable from Revenue by Entity sheet ===
+  if (rev && rev.rows.length) {
+    var rh = rev.headers;
+    var arCol = col(rh, 'Accounts Receivable', 'Receivable');
+    if (arCol) {
+      var totalAR = sum(rev.rows, arCol);
+      document.getElementById('kq-ar').textContent = fmtMoney(totalAR);
+      document.getElementById('kq-ar-alt').textContent = fmtMoneyAlt(totalAR);
+    }
+  }
+
+  // === Cash Position from Cash Flow ===
+  if (cf && cf.rows.length) {
+    var closCol = col(cf.headers, 'Closing Balance');
+    if (closCol) {
+      // Get the latest closing balance (last row per entity, sum across)
+      var lastClose = {};
+      cf.rows.forEach(function(r) {
+        var e = r[col(cf.headers, 'Entity')] || 'Total';
+        lastClose[e] = N(r[closCol]);
+      });
+      var totalCash = Object.keys(lastClose).reduce(function(s,k){ return s + lastClose[k]; }, 0);
+      document.getElementById('kq-cash').textContent = fmtMoney(totalCash);
+      document.getElementById('kq-cash-alt').textContent = fmtMoneyAlt(totalCash);
+    }
+  }
+}
+
 /* ==== INIT ==== */
 google.charts.load('current');
 google.charts.setOnLoadCallback(function() {
@@ -1343,6 +1580,14 @@ google.charts.setOnLoadCallback(function() {
   sheets.push({ name:'AllTime', fn: function(){ return queryGSheet(ALLTIME_ID, 'Sheet1'); } });
   sheets.push({ name:'FundAllTime', fn: function(){ return queryGSheet(FUND_AT_ID, 'Sheet1'); } });
   sheets.push({ name:'Retainers', fn: function(){ return queryGSheet(RETAINER_ID, 'Sheet1'); } });
+
+  // QuickBooks sheets (only load if QB_ID is set)
+  if (QB_ID) {
+    sheets.push({ name:'QB_PnL', fn: function(){ return queryGSheet(QB_ID, 'Monthly P&L'); } });
+    sheets.push({ name:'QB_Revenue', fn: function(){ return queryGSheet(QB_ID, 'Revenue by Entity'); } });
+    sheets.push({ name:'QB_Expenses', fn: function(){ return queryGSheet(QB_ID, 'Expenses'); } });
+    sheets.push({ name:'QB_CashFlow', fn: function(){ return queryGSheet(QB_ID, 'Cash Flow'); } });
+  }
 
   var statuses = {};
   sheets.forEach(function(s) { statuses[s.name] = 'wait'; });
