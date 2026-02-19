@@ -1,5 +1,3 @@
-
-Index · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -610,10 +608,16 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-sub" id="kq-net-alt"></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">%</div>
-        <div class="kpi-label">Profit Margin</div>
-        <div class="kpi-value" id="kq-margin">—</div>
-        <div class="kpi-sub" id="kq-margin-alt"></div>
+        <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">A</div>
+        <div class="kpi-label">Total Assets</div>
+        <div class="kpi-value" id="kq-assets">—</div>
+        <div class="kpi-sub" id="kq-assets-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">B</div>
+        <div class="kpi-label">Cash in Banks</div>
+        <div class="kpi-value" id="kq-cash">—</div>
+        <div class="kpi-sub" id="kq-cash-alt"></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon" style="background:rgba(167,139,250,0.1);color:#A78BFA">R</div>
@@ -621,17 +625,11 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-value" id="kq-ar">—</div>
         <div class="kpi-sub" id="kq-ar-alt"></div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">S</div>
-        <div class="kpi-label">YTD Sales</div>
-        <div class="kpi-value" id="kq-sales">—</div>
-        <div class="kpi-sub" id="kq-sales-alt"></div>
-      </div>
     </div>
     <div class="page-content">
       <div class="section-header">
         <h2>Financials</h2>
-        <p>QuickBooks P&amp;L, expenses &amp; receivables — Jan&ndash;Feb 2026 YTD</p>
+        <p>QuickBooks P&amp;L, balance sheet &amp; receivables — as of Feb 19, 2026</p>
       </div>
       <div class="insight-box" id="ins-financials"><strong>Loading...</strong></div>
       <div class="grid2">
@@ -641,6 +639,10 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
       <div class="grid2">
         <div class="card"><h3>P&amp;L Waterfall</h3><canvas id="c-qb-waterfall"></canvas></div>
         <div class="card"><h3>Operating Expense Detail</h3><canvas id="c-qb-opex"></canvas></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Bank Accounts</h3><canvas id="c-qb-banks"></canvas></div>
+        <div class="card"><h3>Asset Composition</h3><canvas id="c-qb-assets"></canvas></div>
       </div>
       <div class="grid2">
         <div class="card"><h3>Sales by Customer (Top 15)</h3><canvas id="c-qb-sales"></canvas></div>
@@ -1473,13 +1475,69 @@ function renderFinancials() {
     },
     totalSales: 51602237.29,
     // A/R Aging
-    totalAR: 128543210.35,
+    totalAR: 128543210.34,
     arByBusiness: {
       'Creative': 97266600.95,
       'Elevate': 9209824.56,
       'Fund': 3350000.00,
       'Group': 500000.00
-    }
+    },
+    // ── Balance Sheet (as of Feb 19, 2026) ──
+    bankAccounts: {
+      'Elevate Mercury Bank': 634951868.66,
+      'Fund Stanbic Ventures': 106458907.00,
+      'Elevate Stanbic Bank': 73216306.00,
+      'Group - Chase': 70855128.09,
+      'Elevate Wise USD': 24426229.41,
+      'Creative Stanbic UGX': 20567114.74,
+      'Stripe Clearing': 18768911.95,
+      'Elevate Stanbic USD': 15069420.95,
+      'Creative Euro Bank': 14352837.09,
+      'Creative Wise USD': 12860476.25,
+      'Creative Cash at Hand': 11635666.71,
+      'Fund Stanbic Loans': 10348127.28,
+      'Cashplus GBP': 3024385.76,
+      'Fund Cash at Hand': 2000000.00,
+      'Elevate Cash at Hand': 205327.14
+    },
+    bankNegative: {
+      'Group - Mercury': -166077835.10,
+      'Creative Tide GBP': -28499009.51,
+      'Creative Wise GBP': -4279320.78
+    },
+    totalBankAccounts: 819884541.64,
+    totalAccountsReceivable: 128543210.34,
+    otherCurrentAssets: 417032552.77,
+    totalCurrentAssets: 1365460304.75,
+    // Fixed Assets
+    fixedAssets: {
+      'Land & Buildings': 2584881707.58,
+      'Construction - era92 Hub': 888674514.67,
+      'Computers & Equipment': 167528880.30,
+      'Furniture & Fittings': 133507198.01,
+      'Gym Construction': 133430176.67,
+      'Cameras & Video': 94470148.18,
+      'Elevate Hubs (Containers)': 66165286.48,
+      'Generator 80KV': 59815099.06,
+      'Office Equipment': 22973380.95,
+      'Generators': 19050000.00
+    },
+    totalFixedAssets: 4170496391.90,
+    otherAssets: 198675788.71,
+    totalAssets: 5734632485.36,
+    // Liabilities
+    totalCreditCards: 18569349.57,
+    otherCurrentLiabilities: 80109.91,
+    longTermLiabilities: {
+      'Heron Venture Loan': 547950385.74,
+      'Angelo Dev Loan': 31552593.59,
+      'Loans from era92 Group': 9000000.00
+    },
+    totalLongTermLiab: 588502979.33,
+    totalLiabilities: 607152438.81,
+    // Equity
+    retainedEarnings: 5125735374.32,
+    totalEquity: 5127480046.55
   };
 
   // ── KPIs ──
@@ -1489,16 +1547,17 @@ function renderFinancials() {
   document.getElementById('kq-exp-alt').textContent = fmtMoneyAlt(QB.totalExpenses);
   document.getElementById('kq-net').textContent = fmtMoney(QB.netIncome);
   document.getElementById('kq-net-alt').textContent = fmtMoneyAlt(QB.netIncome);
-  var margin = (QB.netIncome / QB.totalIncome * 100);
-  document.getElementById('kq-margin').textContent = margin.toFixed(1) + '%';
-  document.getElementById('kq-margin-alt').textContent = 'profit margin';
+  document.getElementById('kq-assets').textContent = fmtMoney(QB.totalAssets);
+  document.getElementById('kq-assets-alt').textContent = fmtMoneyAlt(QB.totalAssets);
+  document.getElementById('kq-cash').textContent = fmtMoney(QB.totalBankAccounts);
+  document.getElementById('kq-cash-alt').textContent = fmtMoneyAlt(QB.totalBankAccounts);
   document.getElementById('kq-ar').textContent = fmtMoney(QB.totalAR);
   document.getElementById('kq-ar-alt').textContent = fmtMoneyAlt(QB.totalAR);
-  document.getElementById('kq-sales').textContent = fmtMoney(QB.totalSales);
-  document.getElementById('kq-sales-alt').textContent = fmtMoneyAlt(QB.totalSales);
 
   // ── Insight box ──
-  document.getElementById('ins-financials').innerHTML = '<strong>P&L Summary (' + QB.period + '):</strong> ' + fmtMoney(QB.totalIncome) + ' total income, ' + fmtMoney(QB.totalExpenses) + ' expenses, <span style="color:var(--positive)">' + fmtMoney(QB.netIncome) + ' net income</span>. Profit margin: ' + margin.toFixed(1) + '%. A/R outstanding: ' + fmtMoney(QB.totalAR) + '.';
+  var margin = (QB.netIncome / QB.totalIncome * 100);
+  var debtToEquity = (QB.totalLiabilities / QB.totalEquity * 100);
+  document.getElementById('ins-financials').innerHTML = '<strong>Financial Summary (as of Feb 19, 2026):</strong> Total assets ' + fmtMoney(QB.totalAssets) + '. Cash in banks: ' + fmtMoney(QB.totalBankAccounts) + '. YTD income ' + fmtMoney(QB.totalIncome) + ', expenses ' + fmtMoney(QB.totalExpenses) + ', <span style="color:var(--positive)">net income ' + fmtMoney(QB.netIncome) + '</span> (' + margin.toFixed(1) + '% margin). Debt-to-equity: ' + debtToEquity.toFixed(1) + '%. A/R outstanding: ' + fmtMoney(QB.totalAR) + '.';
 
   // ── Chart 1: Income Breakdown (doughnut) ──
   var incLabels = Object.keys(QB.income).filter(function(k){ return QB.income[k] > 0; });
@@ -1516,10 +1575,10 @@ function renderFinancials() {
 
   // ── Chart 3: P&L Waterfall (bar) ──
   var wfLabels = ['Income', 'Expenses', 'FX Loss', 'Net Income'];
-  var wfData = [QB.totalIncome, -QB.totalExpenses, -QB.otherExpenses, QB.netIncome];
-  var wfColors = ['#4ADE80', '#F87171', '#FBBF24', QB.netIncome >= 0 ? '#4ADE80' : '#F87171'];
+  var wfData = [QB.totalIncome, QB.totalExpenses, QB.otherExpenses, QB.netIncome];
+  var wfColors = ['#4ADE80', '#F87171', '#FBBF24', '#4ADE80'];
   mk('c-qb-waterfall', 'bar', wfLabels, [
-    { label: 'Amount (UGX)', data: wfData.map(function(v){ return Math.abs(v); }), backgroundColor: wfColors.map(function(c){ return c + 'B3'; }), hoverBackgroundColor: wfColors.map(function(c){ return c + 'E6'; }), borderRadius: 6, borderSkipped: false, maxBarThickness: 64 }
+    { label: 'Amount (UGX)', data: wfData, backgroundColor: wfColors.map(function(c){ return c + 'B3'; }), hoverBackgroundColor: wfColors.map(function(c){ return c + 'E6'; }), borderRadius: 6, borderSkipped: false, maxBarThickness: 64 }
   ]);
 
   // ── Chart 4: Operating Expense Detail (horizontal bar) ──
@@ -1529,14 +1588,35 @@ function renderFinancials() {
     { label: 'Amount (' + CURRENCY + ')', data: opData, backgroundColor: '#89D6E5B3', hoverBackgroundColor: '#89D6E5E6', borderRadius: 6, borderSkipped: false }
   ], { indexAxis: 'y' });
 
-  // ── Chart 5: Sales by Customer (horizontal bar, top 15) ──
+  // ── Chart 5: Bank Accounts (horizontal bar, top accounts) ──
+  var bkLabels = Object.keys(QB.bankAccounts).sort(function(a,b){ return QB.bankAccounts[b] - QB.bankAccounts[a]; });
+  var bkData = bkLabels.map(function(k){ return CURRENCY === 'UGX' ? QB.bankAccounts[k] : QB.bankAccounts[k] / FX_RATE; });
+  // Add negative accounts at the end
+  var negLabels = Object.keys(QB.bankNegative);
+  negLabels.forEach(function(k){
+    bkLabels.push(k);
+    bkData.push(CURRENCY === 'UGX' ? QB.bankNegative[k] : QB.bankNegative[k] / FX_RATE);
+  });
+  var bkColors = bkData.map(function(v){ return v >= 0 ? '#4ADE80B3' : '#F87171B3'; });
+  mk('c-qb-banks', 'bar', bkLabels.map(function(l){ return l.length > 22 ? l.substring(0,20) + '...' : l; }), [
+    { label: 'Balance (' + CURRENCY + ')', data: bkData, backgroundColor: bkColors, borderRadius: 4, borderSkipped: false }
+  ], { indexAxis: 'y' });
+
+  // ── Chart 6: Asset Composition (doughnut) ──
+  var assetLabels = ['Fixed Assets', 'Bank Accounts', 'Other Current Assets', 'Accounts Receivable', 'Other Assets'];
+  var assetData = [QB.totalFixedAssets, QB.totalBankAccounts, QB.otherCurrentAssets, QB.totalAccountsReceivable, QB.otherAssets];
+  mk('c-qb-assets', 'doughnut', assetLabels, [
+    { data: assetData, backgroundColor: ['#FC5E27', '#4ADE80', '#89D6E5', '#A78BFA', '#FBBF24'].map(function(c){ return c + 'CC'; }), borderWidth: 2, borderColor: '#292a30' }
+  ], { cutout: '62%' });
+
+  // ── Chart 7: Sales by Customer (horizontal bar, top 15) ──
   var sLabels = Object.keys(QB.sales).sort(function(a,b){ return QB.sales[b] - QB.sales[a]; }).slice(0, 15);
   var sData = sLabels.map(function(k){ return CURRENCY === 'UGX' ? QB.sales[k] : QB.sales[k] / FX_RATE; });
   mk('c-qb-sales', 'bar', sLabels.map(function(l){ return l.length > 20 ? l.substring(0,18) + '...' : l; }), [
     { label: 'Sales (' + CURRENCY + ')', data: sData, backgroundColor: '#FC5E27B3', hoverBackgroundColor: '#FC5E27E6', borderRadius: 6, borderSkipped: false }
   ], { indexAxis: 'y' });
 
-  // ── Chart 6: A/R Aging by Business (doughnut) ──
+  // ── Chart 8: A/R Aging by Business (doughnut) ──
   var arLabels = Object.keys(QB.arByBusiness).sort(function(a,b){ return QB.arByBusiness[b] - QB.arByBusiness[a]; });
   var arData = arLabels.map(function(k){ return QB.arByBusiness[k]; });
   mk('c-qb-ar', 'doughnut', arLabels, [
