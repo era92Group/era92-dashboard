@@ -1,3 +1,5 @@
+
+Index · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -255,7 +257,7 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
     <div class="nav-item" data-tab="financials">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
       Financials (QB)
-      <span class="nav-badge">NEW</span>
+      <span class="nav-badge">LIVE</span>
     </div>
   </div>
   <div class="sidebar-footer">
@@ -591,7 +593,7 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
     <div class="kpi-strip">
       <div class="kpi-card">
         <div class="kpi-icon" style="background:rgba(252,94,39,0.1);color:var(--orange)">$</div>
-        <div class="kpi-label">Total Revenue (QB)</div>
+        <div class="kpi-label">Total Income (YTD)</div>
         <div class="kpi-value" id="kq-rev">—</div>
         <div class="kpi-sub" id="kq-rev-alt"></div>
       </div>
@@ -608,16 +610,10 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-sub" id="kq-net-alt"></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">M</div>
-        <div class="kpi-label">Gross Margin</div>
+        <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">%</div>
+        <div class="kpi-label">Profit Margin</div>
         <div class="kpi-value" id="kq-margin">—</div>
         <div class="kpi-sub" id="kq-margin-alt"></div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">C</div>
-        <div class="kpi-label">Cash Position</div>
-        <div class="kpi-value" id="kq-cash">—</div>
-        <div class="kpi-sub" id="kq-cash-alt"></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon" style="background:rgba(167,139,250,0.1);color:#A78BFA">R</div>
@@ -625,24 +621,30 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
         <div class="kpi-value" id="kq-ar">—</div>
         <div class="kpi-sub" id="kq-ar-alt"></div>
       </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(38,144,177,0.1);color:var(--dark-blue)">S</div>
+        <div class="kpi-label">YTD Sales</div>
+        <div class="kpi-value" id="kq-sales">—</div>
+        <div class="kpi-sub" id="kq-sales-alt"></div>
+      </div>
     </div>
     <div class="page-content">
       <div class="section-header">
         <h2>Financials</h2>
-        <p>QuickBooks P&amp;L, expenses &amp; cash flow</p>
+        <p>QuickBooks P&amp;L, expenses &amp; receivables — Jan&ndash;Feb 2026 YTD</p>
       </div>
-      <div class="insight-box" id="ins-financials"><strong>Connect QuickBooks:</strong> Upload the era92_QuickBooks_Template.xlsx to Google Sheets, sync your QuickBooks data, then share the Sheet ID to activate this section.</div>
+      <div class="insight-box" id="ins-financials"><strong>Loading...</strong></div>
       <div class="grid2">
-        <div class="card"><h3>Revenue vs Expenses by Month</h3><canvas id="c-qb-revexp"></canvas></div>
-        <div class="card"><h3>Net Income by Month</h3><canvas id="c-qb-net"></canvas></div>
-      </div>
-      <div class="grid2">
-        <div class="card"><h3>Revenue by Entity</h3><canvas id="c-qb-entity"></canvas></div>
-        <div class="card"><h3>Expense Breakdown</h3><canvas id="c-qb-expenses"></canvas></div>
+        <div class="card"><h3>Income Breakdown</h3><canvas id="c-qb-income"></canvas></div>
+        <div class="card"><h3>Expense Categories</h3><canvas id="c-qb-expenses"></canvas></div>
       </div>
       <div class="grid2">
-        <div class="card"><h3>Cash Flow by Entity</h3><canvas id="c-qb-cashflow"></canvas></div>
-        <div class="card"><h3>Gross Margin Trend</h3><canvas id="c-qb-margin"></canvas></div>
+        <div class="card"><h3>P&amp;L Waterfall</h3><canvas id="c-qb-waterfall"></canvas></div>
+        <div class="card"><h3>Operating Expense Detail</h3><canvas id="c-qb-opex"></canvas></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Sales by Customer (Top 15)</h3><canvas id="c-qb-sales"></canvas></div>
+        <div class="card"><h3>A/R Aging by Business</h3><canvas id="c-qb-ar"></canvas></div>
       </div>
     </div>
   </div>
@@ -672,8 +674,6 @@ var REV_ID = '1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI';
 var ALLTIME_ID = '1m7xnMfXTRID7bUi3tO4Q7v3LpPwXRntz3hQQ6zOuhtQ';
 var FUND_AT_ID = '1wP9nQA9-gO8LWZh0kGP48cxYJ__MpWFBmApuQhrECzU';
 var RETAINER_ID = '15FV8X-czVT1AGWJAX3l7a-BGf2mpcYFlY0QAdJKho4M';
-// QuickBooks data — replace with your Google Sheet ID after uploading era92_QuickBooks_Template.xlsx
-var QB_ID = '';  // e.g. '1ABCxyz...' — leave empty until connected
 
 var DATA = {}, FDATA = {}, CHARTS = {}, ERRORS = [];
 var CURRENCY = 'UGX';
@@ -1411,155 +1411,137 @@ function renderRevenue() {
   document.getElementById('ins-revenue').innerHTML = '<strong>Revenue</strong> — ' + fmtMoney(total) + ' total. Top brand: ' + brands[0] + ' (' + fmtMoney(bb[brands[0]]) + ').';
 }
 
-/* ==== FINANCIALS (QuickBooks) ==== */
+/* ==== FINANCIALS (QuickBooks YTD) ==== */
 function renderFinancials() {
-  var pnl = FDATA.QB_PnL, rev = FDATA.QB_Revenue, exp = FDATA.QB_Expenses, cf = FDATA.QB_CashFlow;
-
-  // If no QB data connected, show placeholder message
-  if (!pnl && !rev && !exp && !cf) {
-    document.getElementById('ins-financials').innerHTML = '<strong>Connect QuickBooks:</strong> Upload the era92_QuickBooks_Template.xlsx to Google Sheets, sync your QuickBooks data, then paste the Sheet ID into the dashboard code to activate this section.';
-    return;
-  }
-
-  // === KPIs from Monthly P&L ===
-  if (pnl && pnl.rows.length) {
-    var h = pnl.headers;
-    var revCol = col(h, 'Revenue');
-    var cogsCol = col(h, 'COGS');
-    var expCol = col(h, 'Total OpEx');
-    var netCol = col(h, 'Net Income');
-
-    var totalRev = sum(pnl.rows, revCol);
-    var totalCogs = sum(pnl.rows, cogsCol);
-    var totalExp = sum(pnl.rows, expCol);
-    var totalNet = sum(pnl.rows, netCol);
-    var grossProfit = totalRev - totalCogs;
-    var grossMargin = totalRev > 0 ? (grossProfit / totalRev * 100) : 0;
-
-    document.getElementById('kq-rev').textContent = fmtMoney(totalRev);
-    document.getElementById('kq-rev-alt').textContent = fmtMoneyAlt(totalRev);
-    document.getElementById('kq-exp').textContent = fmtMoney(totalExp);
-    document.getElementById('kq-exp-alt').textContent = fmtMoneyAlt(totalExp);
-    document.getElementById('kq-net').textContent = fmtMoney(totalNet);
-    document.getElementById('kq-net-alt').textContent = fmtMoneyAlt(totalNet);
-    document.getElementById('kq-margin').textContent = grossMargin.toFixed(1) + '%';
-    document.getElementById('kq-margin-alt').textContent = 'gross margin';
-
-    // Revenue vs Expenses by Month chart
-    var monthCol = col(h, 'Month');
-    var byMonth = {};
-    pnl.rows.forEach(function(r) {
-      var m = r[monthCol];
-      if (!m) return;
-      if (!byMonth[m]) byMonth[m] = { rev: 0, exp: 0, net: 0, cogs: 0 };
-      byMonth[m].rev += N(r[revCol]);
-      byMonth[m].exp += N(r[expCol]);
-      byMonth[m].net += N(r[netCol]);
-      byMonth[m].cogs += N(r[cogsCol]);
-    });
-    var mLabels = Object.keys(byMonth);
-    mk('c-qb-revexp', 'bar', mLabels, [
-      { label: 'Revenue', data: mLabels.map(function(m){ return byMonth[m].rev; }), backgroundColor: '#4ADE80' },
-      { label: 'Expenses', data: mLabels.map(function(m){ return byMonth[m].exp; }), backgroundColor: '#F87171' }
-    ]);
-
-    // Net Income by Month
-    mk('c-qb-net', 'bar', mLabels, [
-      { label: 'Net Income', data: mLabels.map(function(m){ return byMonth[m].net; }),
-        backgroundColor: mLabels.map(function(m){ return byMonth[m].net >= 0 ? '#4ADE80' : '#F87171'; }) }
-    ]);
-
-    // Revenue by Entity
-    var entCol = col(h, 'Entity');
-    var byEnt = {};
-    pnl.rows.forEach(function(r) {
-      var e = r[entCol];
-      if (!e) return;
-      if (!byEnt[e]) byEnt[e] = 0;
-      byEnt[e] += N(r[revCol]);
-    });
-    var entLabels = Object.keys(byEnt).sort(function(a,b){ return byEnt[b] - byEnt[a]; });
-    mk('c-qb-entity', 'doughnut', entLabels, [
-      { data: entLabels.map(function(e){ return byEnt[e]; }),
-        backgroundColor: entLabels.map(function(e,i){ return COLORS[i % COLORS.length]; }) }
-    ]);
-
-    // Gross Margin Trend
-    mk('c-qb-margin', 'line', mLabels, [
-      { label: 'Gross Margin %',
-        data: mLabels.map(function(m){ return byMonth[m].rev > 0 ? ((byMonth[m].rev - byMonth[m].cogs) / byMonth[m].rev * 100) : 0; }),
-        borderColor: '#89D6E5', backgroundColor: 'rgba(137,214,229,0.1)', fill: true, tension: 0.4 }
-    ]);
-
-    // Insight box
-    document.getElementById('ins-financials').innerHTML = '<strong>P&L Summary:</strong> ' + fmtMoney(totalRev) + ' revenue, ' + fmtMoney(totalExp) + ' expenses, ' + fmtMoney(totalNet) + ' net income. Gross margin: ' + grossMargin.toFixed(1) + '%.';
-  }
-
-  // === Expense Breakdown from Expenses sheet ===
-  if (exp && exp.rows.length) {
-    var eh = exp.headers;
-    var catCol = col(eh, 'Category');
-    var amtCol = col(eh, 'Amount');
-    var byCat = {};
-    exp.rows.forEach(function(r) {
-      var c = r[catCol] || 'Uncategorized';
-      if (!byCat[c]) byCat[c] = 0;
-      byCat[c] += N(r[amtCol]);
-    });
-    var cats = Object.keys(byCat).sort(function(a,b){ return byCat[b] - byCat[a]; });
-    mk('c-qb-expenses', 'doughnut', cats, [
-      { data: cats.map(function(c){ return byCat[c]; }),
-        backgroundColor: cats.map(function(c,i){ return COLORS[i % COLORS.length]; }) }
-    ]);
-  }
-
-  // === Cash Flow by Entity ===
-  if (cf && cf.rows.length) {
-    var ch = cf.headers;
-    var cfEntCol = col(ch, 'Entity');
-    var closingCol = col(ch, 'Closing Balance');
-    var openCol = col(ch, 'Opening Balance');
-    var byCfEnt = {};
-    cf.rows.forEach(function(r) {
-      var e = r[cfEntCol];
-      if (!e) return;
-      if (!byCfEnt[e]) byCfEnt[e] = { open: 0, close: 0 };
-      byCfEnt[e].open += N(r[openCol]);
-      byCfEnt[e].close += N(r[closingCol]);
-    });
-    var cfEnts = Object.keys(byCfEnt);
-    mk('c-qb-cashflow', 'bar', cfEnts, [
-      { label: 'Opening Balance', data: cfEnts.map(function(e){ return byCfEnt[e].open; }), backgroundColor: '#89D6E5' },
-      { label: 'Closing Balance', data: cfEnts.map(function(e){ return byCfEnt[e].close; }), backgroundColor: '#2690B1' }
-    ]);
-  }
-
-  // === Accounts Receivable from Revenue by Entity sheet ===
-  if (rev && rev.rows.length) {
-    var rh = rev.headers;
-    var arCol = col(rh, 'Accounts Receivable', 'Receivable');
-    if (arCol) {
-      var totalAR = sum(rev.rows, arCol);
-      document.getElementById('kq-ar').textContent = fmtMoney(totalAR);
-      document.getElementById('kq-ar-alt').textContent = fmtMoneyAlt(totalAR);
+  // ── QuickBooks YTD Data (Jan 1 – Feb 19, 2026) ──
+  var QB = {
+    period: 'Jan 1 – Feb 19, 2026',
+    // P&L
+    income: {
+      'Retainer': 201619599.10,
+      'era92 Ventures': 48042000,
+      'Non-Profit & Donations': 23121220.57,
+      'Creative Services': 2688745.45,
+      'Interest Income': 806086.57,
+      'Refund': -20678490.66
+    },
+    totalIncome: 255599161.03,
+    totalExpenses: 142008924.99,
+    netOperating: 113590236.04,
+    otherExpenses: 6357967.95,
+    netIncome: 107232268.09,
+    // Expense categories
+    expenses: {
+      'Operating Expenses': 70624465.62,
+      'Payroll & Staff': 46175413.54,
+      'Administrative': 14364785.74,
+      'Renovation': 4986178.75,
+      'Education/Training': 4387629.36,
+      'Contractors': 1131666.40,
+      'PAYEE': 232294.58,
+      'Land Fee': 77826.80,
+      'Entertainment': 28664.20
+    },
+    // Operating expense detail
+    opex: {
+      'General Operating': 30293913.59,
+      'Travel (Airfare/Lodging)': 22818109.22,
+      'Software Subscriptions': 7019096.88,
+      'Internet & Data': 5086804.05,
+      'Advertising & Marketing': 1686669.16,
+      'Program Expenses': 1548108.35,
+      'Contribution': 1532962.57,
+      'Repairs & Maintenance': 638801.80
+    },
+    // Sales by Customer (YTD 2026)
+    sales: {
+      'Issroff Foundation': 11117180.92,
+      'Evin Robinson': 9770378.82,
+      'Cassie Furnari': 5654708.79,
+      'Amy Edwards': 5301289.49,
+      'Sarah Nininger': 4241031.59,
+      'Warren Allan': 4079922.78,
+      'Matthew Loguya': 2850000.00,
+      'Sophie Green': 2420401.64,
+      'We Run We Rise': 1773721.74,
+      'Evan Money': 1236967.55,
+      'Marko van der Merwe': 1183954.65,
+      'Giselle Gonzales': 970879.32,
+      'Dr. Arnold Katanaka': 500000.00,
+      'TIKO Uganda': 500000.00,
+      '4africa': 1800.00
+    },
+    totalSales: 51602237.29,
+    // A/R Aging
+    totalAR: 128543210.35,
+    arByBusiness: {
+      'Creative': 97266600.95,
+      'Elevate': 9209824.56,
+      'Fund': 3350000.00,
+      'Group': 500000.00
     }
-  }
+  };
 
-  // === Cash Position from Cash Flow ===
-  if (cf && cf.rows.length) {
-    var closCol = col(cf.headers, 'Closing Balance');
-    if (closCol) {
-      // Get the latest closing balance (last row per entity, sum across)
-      var lastClose = {};
-      cf.rows.forEach(function(r) {
-        var e = r[col(cf.headers, 'Entity')] || 'Total';
-        lastClose[e] = N(r[closCol]);
-      });
-      var totalCash = Object.keys(lastClose).reduce(function(s,k){ return s + lastClose[k]; }, 0);
-      document.getElementById('kq-cash').textContent = fmtMoney(totalCash);
-      document.getElementById('kq-cash-alt').textContent = fmtMoneyAlt(totalCash);
-    }
-  }
+  // ── KPIs ──
+  document.getElementById('kq-rev').textContent = fmtMoney(QB.totalIncome);
+  document.getElementById('kq-rev-alt').textContent = fmtMoneyAlt(QB.totalIncome);
+  document.getElementById('kq-exp').textContent = fmtMoney(QB.totalExpenses);
+  document.getElementById('kq-exp-alt').textContent = fmtMoneyAlt(QB.totalExpenses);
+  document.getElementById('kq-net').textContent = fmtMoney(QB.netIncome);
+  document.getElementById('kq-net-alt').textContent = fmtMoneyAlt(QB.netIncome);
+  var margin = (QB.netIncome / QB.totalIncome * 100);
+  document.getElementById('kq-margin').textContent = margin.toFixed(1) + '%';
+  document.getElementById('kq-margin-alt').textContent = 'profit margin';
+  document.getElementById('kq-ar').textContent = fmtMoney(QB.totalAR);
+  document.getElementById('kq-ar-alt').textContent = fmtMoneyAlt(QB.totalAR);
+  document.getElementById('kq-sales').textContent = fmtMoney(QB.totalSales);
+  document.getElementById('kq-sales-alt').textContent = fmtMoneyAlt(QB.totalSales);
+
+  // ── Insight box ──
+  document.getElementById('ins-financials').innerHTML = '<strong>P&L Summary (' + QB.period + '):</strong> ' + fmtMoney(QB.totalIncome) + ' total income, ' + fmtMoney(QB.totalExpenses) + ' expenses, <span style="color:var(--positive)">' + fmtMoney(QB.netIncome) + ' net income</span>. Profit margin: ' + margin.toFixed(1) + '%. A/R outstanding: ' + fmtMoney(QB.totalAR) + '.';
+
+  // ── Chart 1: Income Breakdown (doughnut) ──
+  var incLabels = Object.keys(QB.income).filter(function(k){ return QB.income[k] > 0; });
+  var incData = incLabels.map(function(k){ return QB.income[k]; });
+  mk('c-qb-income', 'doughnut', incLabels, [
+    { data: incData, backgroundColor: incLabels.map(function(l,i){ return COLORS[i % COLORS.length]; }), borderWidth: 2, borderColor: '#292a30' }
+  ], { cutout: '62%' });
+
+  // ── Chart 2: Expense Categories (doughnut) ──
+  var expLabels = Object.keys(QB.expenses);
+  var expData = expLabels.map(function(k){ return QB.expenses[k]; });
+  mk('c-qb-expenses', 'doughnut', expLabels, [
+    { data: expData, backgroundColor: expLabels.map(function(l,i){ return COLORS[i % COLORS.length]; }), borderWidth: 2, borderColor: '#292a30' }
+  ], { cutout: '62%' });
+
+  // ── Chart 3: P&L Waterfall (bar) ──
+  var wfLabels = ['Income', 'Expenses', 'FX Loss', 'Net Income'];
+  var wfData = [QB.totalIncome, -QB.totalExpenses, -QB.otherExpenses, QB.netIncome];
+  var wfColors = ['#4ADE80', '#F87171', '#FBBF24', QB.netIncome >= 0 ? '#4ADE80' : '#F87171'];
+  mk('c-qb-waterfall', 'bar', wfLabels, [
+    { label: 'Amount (UGX)', data: wfData.map(function(v){ return Math.abs(v); }), backgroundColor: wfColors.map(function(c){ return c + 'B3'; }), hoverBackgroundColor: wfColors.map(function(c){ return c + 'E6'; }), borderRadius: 6, borderSkipped: false, maxBarThickness: 64 }
+  ]);
+
+  // ── Chart 4: Operating Expense Detail (horizontal bar) ──
+  var opLabels = Object.keys(QB.opex).sort(function(a,b){ return QB.opex[b] - QB.opex[a]; });
+  var opData = opLabels.map(function(k){ return CURRENCY === 'UGX' ? QB.opex[k] : QB.opex[k] / FX_RATE; });
+  mk('c-qb-opex', 'bar', opLabels.map(function(l){ return l.length > 22 ? l.substring(0,20) + '...' : l; }), [
+    { label: 'Amount (' + CURRENCY + ')', data: opData, backgroundColor: '#89D6E5B3', hoverBackgroundColor: '#89D6E5E6', borderRadius: 6, borderSkipped: false }
+  ], { indexAxis: 'y' });
+
+  // ── Chart 5: Sales by Customer (horizontal bar, top 15) ──
+  var sLabels = Object.keys(QB.sales).sort(function(a,b){ return QB.sales[b] - QB.sales[a]; }).slice(0, 15);
+  var sData = sLabels.map(function(k){ return CURRENCY === 'UGX' ? QB.sales[k] : QB.sales[k] / FX_RATE; });
+  mk('c-qb-sales', 'bar', sLabels.map(function(l){ return l.length > 20 ? l.substring(0,18) + '...' : l; }), [
+    { label: 'Sales (' + CURRENCY + ')', data: sData, backgroundColor: '#FC5E27B3', hoverBackgroundColor: '#FC5E27E6', borderRadius: 6, borderSkipped: false }
+  ], { indexAxis: 'y' });
+
+  // ── Chart 6: A/R Aging by Business (doughnut) ──
+  var arLabels = Object.keys(QB.arByBusiness).sort(function(a,b){ return QB.arByBusiness[b] - QB.arByBusiness[a]; });
+  var arData = arLabels.map(function(k){ return QB.arByBusiness[k]; });
+  mk('c-qb-ar', 'doughnut', arLabels, [
+    { data: arData, backgroundColor: ['#A78BFA', '#F2E3DB', '#4ADE80', '#2690B1'], borderWidth: 2, borderColor: '#292a30' }
+  ], { cutout: '62%' });
 }
 
 /* ==== INIT ==== */
@@ -1580,14 +1562,6 @@ google.charts.setOnLoadCallback(function() {
   sheets.push({ name:'AllTime', fn: function(){ return queryGSheet(ALLTIME_ID, 'Sheet1'); } });
   sheets.push({ name:'FundAllTime', fn: function(){ return queryGSheet(FUND_AT_ID, 'Sheet1'); } });
   sheets.push({ name:'Retainers', fn: function(){ return queryGSheet(RETAINER_ID, 'Sheet1'); } });
-
-  // QuickBooks sheets (only load if QB_ID is set)
-  if (QB_ID) {
-    sheets.push({ name:'QB_PnL', fn: function(){ return queryGSheet(QB_ID, 'Monthly P&L'); } });
-    sheets.push({ name:'QB_Revenue', fn: function(){ return queryGSheet(QB_ID, 'Revenue by Entity'); } });
-    sheets.push({ name:'QB_Expenses', fn: function(){ return queryGSheet(QB_ID, 'Expenses'); } });
-    sheets.push({ name:'QB_CashFlow', fn: function(){ return queryGSheet(QB_ID, 'Cash Flow'); } });
-  }
 
   var statuses = {};
   sheets.forEach(function(s) { statuses[s.name] = 'wait'; });
