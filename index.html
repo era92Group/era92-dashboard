@@ -252,6 +252,11 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Revenue Tracker
     </div>
+    <div class="nav-item" data-tab="bizdev">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Biz Dev
+      <span class="nav-badge">Pipeline</span>
+    </div>
     <div class="nav-item" data-tab="financials">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
       Financials (QB)
@@ -587,6 +592,66 @@ body { font-family:'Inter Tight', system-ui, -apple-system, sans-serif; backgrou
   </div>
 
   <!-- ==================== FINANCIALS (QB) ==================== -->
+  <div class="section" id="sec-bizdev">
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(252,94,39,0.1);color:var(--orange)">C</div>
+        <div class="kpi-label">Total Contacts</div>
+        <div class="kpi-value" id="kb-contacts">—</div>
+        <div class="kpi-sub" id="kb-contacts-sub"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(137,214,229,0.1);color:var(--light-blue)">P</div>
+        <div class="kpi-label">Pipeline Value</div>
+        <div class="kpi-value" id="kb-pipeline">—</div>
+        <div class="kpi-sub" id="kb-pipeline-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(74,222,128,0.1);color:var(--positive)">R</div>
+        <div class="kpi-label">Total Received</div>
+        <div class="kpi-value" id="kb-received">—</div>
+        <div class="kpi-sub" id="kb-received-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(248,113,113,0.1);color:var(--negative)">O</div>
+        <div class="kpi-label">Outstanding</div>
+        <div class="kpi-value" id="kb-outstanding">—</div>
+        <div class="kpi-sub" id="kb-outstanding-alt"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(167,139,250,0.1);color:#A78BFA">%</div>
+        <div class="kpi-label">Collection Rate</div>
+        <div class="kpi-value" id="kb-rate">—</div>
+        <div class="kpi-sub" id="kb-rate-sub"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(251,191,36,0.1);color:#FBBF24">F</div>
+        <div class="kpi-label">Fully Paid</div>
+        <div class="kpi-value" id="kb-paid">—</div>
+        <div class="kpi-sub" id="kb-paid-sub"></div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="section-header">
+        <h2>Business Development Pipeline</h2>
+        <p>Partnership contacts, pipeline stages &amp; collections — live from Google Sheets</p>
+      </div>
+      <div class="insight-box" id="ins-bizdev"><strong>Loading...</strong></div>
+      <div class="grid2">
+        <div class="card"><h3>Pipeline by Entity</h3><canvas id="c-bd-entity"></canvas></div>
+        <div class="card"><h3>Pipeline by Stage</h3><canvas id="c-bd-stage"></canvas></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Collections by Entity</h3><canvas id="c-bd-collections"></canvas></div>
+        <div class="card"><h3>Contact Type Mix</h3><canvas id="c-bd-type"></canvas></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Top Contacts by Committed Value</h3><canvas id="c-bd-top"></canvas></div>
+        <div class="card"><h3>Payment Status</h3><canvas id="c-bd-status"></canvas></div>
+      </div>
+    </div>
+  </div>
+
   <div class="section" id="sec-financials">
     <div class="kpi-strip">
       <div class="kpi-card">
@@ -676,6 +741,7 @@ var REV_ID = '1n4eFTqFmyvm9xEY-meoio2v6qFoCow7mwC6BU0wNAhI';
 var ALLTIME_ID = '1m7xnMfXTRID7bUi3tO4Q7v3LpPwXRntz3hQQ6zOuhtQ';
 var FUND_AT_ID = '1wP9nQA9-gO8LWZh0kGP48cxYJ__MpWFBmApuQhrECzU';
 var RETAINER_ID = '15FV8X-czVT1AGWJAX3l7a-BGf2mpcYFlY0QAdJKho4M';
+var BIZDEV_ID = '1-Xxb950FO4RXCG-GXxzbIFS2y9CCIY96';
 
 var DATA = {}, FDATA = {}, CHARTS = {}, ERRORS = [];
 var CURRENCY = 'UGX';
@@ -698,6 +764,7 @@ var TAB_INFO = {
   fund:      { title:'era92 Fund',      sub:'microfinance & financial inclusion' },
   hub:       { title:'era92 Hub',       sub:'co-working space & community' },
   revenue:   { title:'Revenue Tracker', sub:'consolidated revenue across all brands' },
+  bizdev:    { title:'Biz Dev', sub:'partnership pipeline & business development' },
   financials:{ title:'Financials', sub:'QuickBooks P&L, expenses & cash flow' }
 };
 
@@ -932,6 +999,7 @@ function renderAll() {
   try { renderFund(); } catch(e) { console.warn('Fund:', e); }
   try { renderHub(); } catch(e) { console.warn('Hub:', e); }
   try { renderRevenue(); } catch(e) { console.warn('Revenue:', e); }
+  try { renderBizDev(); } catch(e) { console.warn('BizDev:', e); }
   try { renderFinancials(); } catch(e) { console.warn('Financials:', e); }
 }
 
@@ -1413,6 +1481,156 @@ function renderRevenue() {
   document.getElementById('ins-revenue').innerHTML = '<strong>Revenue</strong> — ' + fmtMoney(total) + ' total. Top brand: ' + brands[0] + ' (' + fmtMoney(bb[brands[0]]) + ').';
 }
 
+/* ==== BIZ DEV ==== */
+function renderBizDev() {
+  var bd = FDATA.BizDev;
+  if (!bd || !bd.rows || !bd.rows.length) return;
+  var rows = bd.rows, hdrs = bd.headers;
+  var cCommit = col(hdrs, 'committed', 'commit');
+  var cReceived = col(hdrs, 'received');
+  var cBalance = col(hdrs, 'balance', 'outstanding');
+  var cEntity = col(hdrs, 'entity');
+  var cStage = col(hdrs, 'stage', 'pipeline');
+  var cType = col(hdrs, 'contact type', 'type');
+  var cName = col(hdrs, 'contact name', 'name');
+  var cOrg = col(hdrs, 'organization', 'org');
+  var cStatus = col(hdrs, 'payment status', 'status');
+
+  function parseDollar(v) {
+    if (typeof v === 'number') return v;
+    if (!v) return 0;
+    return parseFloat(String(v).replace(/[$,]/g, '')) || 0;
+  }
+
+  var totalCommitted = 0, totalReceived = 0, totalBalance = 0, fullyPaid = 0;
+  rows.forEach(function(r) {
+    totalCommitted += parseDollar(r[cCommit]);
+    totalReceived += parseDollar(r[cReceived]);
+    totalBalance += parseDollar(r[cBalance]);
+    var st = String(r[cStatus] || '').toLowerCase();
+    if (st.indexOf('fully') >= 0) fullyPaid++;
+  });
+  var rate = totalCommitted > 0 ? (totalReceived / totalCommitted * 100) : 0;
+
+  // Values are USD in sheet — convert to UGX for display
+  var pipeUGX = totalCommitted * FX_RATE;
+  var recvUGX = totalReceived * FX_RATE;
+  var outUGX = totalBalance * FX_RATE;
+
+  document.getElementById('kb-contacts').textContent = rows.length;
+  document.getElementById('kb-contacts-sub').textContent = (fullyPaid > 0 ? fullyPaid + ' fully paid' : '');
+
+  function fmtUSD(v) {
+    if (v >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+    if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+    return '$' + Math.round(v).toLocaleString();
+  }
+  function showBD(id, usd, ugx) {
+    if (CURRENCY === 'USD') {
+      document.getElementById(id).textContent = fmtUSD(usd);
+      document.getElementById(id + '-alt').textContent = fmtMoney(ugx);
+    } else {
+      document.getElementById(id).textContent = fmtMoney(ugx);
+      document.getElementById(id + '-alt').textContent = fmtUSD(usd);
+    }
+  }
+  showBD('kb-pipeline', totalCommitted, pipeUGX);
+  showBD('kb-received', totalReceived, recvUGX);
+  showBD('kb-outstanding', totalBalance, outUGX);
+
+  document.getElementById('kb-rate').textContent = rate.toFixed(0) + '%';
+  document.getElementById('kb-rate-sub').textContent = totalReceived > 0 ? (fmtUSD(totalReceived) + ' of ' + fmtUSD(totalCommitted)) : '';
+  document.getElementById('kb-paid').textContent = fullyPaid;
+  document.getElementById('kb-paid-sub').textContent = 'of ' + rows.length + ' contacts';
+
+  // ── Pipeline by Entity (stacked bar: received vs outstanding) ──
+  var entities = {};
+  rows.forEach(function(r) {
+    var ent = r[cEntity] || 'Other';
+    if (!entities[ent]) entities[ent] = { committed:0, received:0, outstanding:0, count:0 };
+    entities[ent].committed += parseDollar(r[cCommit]);
+    entities[ent].received += parseDollar(r[cReceived]);
+    entities[ent].outstanding += parseDollar(r[cBalance]);
+    entities[ent].count++;
+  });
+  var entNames = Object.keys(entities).sort(function(a,b) { return entities[b].committed - entities[a].committed; });
+  var entRecv = entNames.map(function(e) { return entities[e].received; });
+  var entOut = entNames.map(function(e) { return entities[e].outstanding; });
+  mk('c-bd-entity', 'bar', entNames, [
+    { label:'Received', data:entRecv, backgroundColor:'#4ADE80', borderRadius:4 },
+    { label:'Outstanding', data:entOut, backgroundColor:'#F87171', borderRadius:4 }
+  ], { plugins:{ legend:{position:'top'} }, scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, ticks:{callback:function(v){return '$'+Math.round(v/1000)+'K';}}} } });
+
+  // ── Pipeline by Stage (horizontal bar) ──
+  var stages = {};
+  var stageOrder = ['Identified','First Contact','Meeting','Proposal Sent','Negotiating','Committed','Received'];
+  rows.forEach(function(r) {
+    var st = r[cStage] || 'Other';
+    if (!stages[st]) stages[st] = { value:0, count:0 };
+    stages[st].value += parseDollar(r[cCommit]);
+    stages[st].count++;
+  });
+  var stLabels = stageOrder.filter(function(s) { return stages[s]; });
+  var stValues = stLabels.map(function(s) { return stages[s].value; });
+  var stColors = ['#FC5E27','#F2E3DB','#89D6E5','#FBBF24','#A78BFA','#4ADE80','#2690B1'];
+  mk('c-bd-stage', 'bar', stLabels, [
+    { data:stValues, backgroundColor:stColors.slice(0, stLabels.length), borderRadius:4 }
+  ], { indexAxis:'y', plugins:{ legend:{display:false} }, scales:{ x:{ticks:{callback:function(v){return '$'+Math.round(v/1000)+'K';}}}, y:{grid:{display:false}} } });
+
+  // ── Collections by Entity (grouped bar: committed vs received) ──
+  var entCommit = entNames.map(function(e) { return entities[e].committed; });
+  mk('c-bd-collections', 'bar', entNames, [
+    { label:'Committed', data:entCommit, backgroundColor:'#89D6E5', borderRadius:4 },
+    { label:'Received', data:entRecv, backgroundColor:'#4ADE80', borderRadius:4 }
+  ], { plugins:{ legend:{position:'top'} }, scales:{ x:{grid:{display:false}}, y:{ticks:{callback:function(v){return '$'+Math.round(v/1000)+'K';}}} } });
+
+  // ── Contact Type Mix (doughnut) ──
+  var types = {};
+  rows.forEach(function(r) {
+    var t = r[cType] || 'Other';
+    if (!types[t]) types[t] = { count:0, value:0 };
+    types[t].count++;
+    types[t].value += parseDollar(r[cCommit]);
+  });
+  var typeNames = Object.keys(types).sort(function(a,b) { return types[b].value - types[a].value; });
+  var typeValues = typeNames.map(function(t) { return types[t].value; });
+  mk('c-bd-type', 'doughnut', typeNames, [
+    { data:typeValues, backgroundColor:['#FC5E27','#89D6E5','#2690B1','#A78BFA','#FBBF24','#4ADE80'].slice(0, typeNames.length) }
+  ], { cutout:'55%', plugins:{ legend:{position:'right'}, tooltip:{ callbacks:{ label:function(ctx){ return ctx.label+': $'+Math.round(ctx.raw/1000)+'K ('+types[ctx.label].count+' contacts)'; } } } } });
+
+  // ── Top Contacts by Committed Value (horizontal bar) ──
+  var sorted = rows.slice().sort(function(a,b) { return parseDollar(b[cCommit]) - parseDollar(a[cCommit]); }).slice(0,12);
+  var topLabels = sorted.map(function(r) { var n = r[cName]||''; var o = r[cOrg]||''; return n.split(' ')[0] + (o ? ' ('+o.substring(0,15)+')' : ''); });
+  var topCommit = sorted.map(function(r) { return parseDollar(r[cCommit]); });
+  var topRecv = sorted.map(function(r) { return parseDollar(r[cReceived]); });
+  mk('c-bd-top', 'bar', topLabels, [
+    { label:'Committed', data:topCommit, backgroundColor:'#89D6E5', borderRadius:4 },
+    { label:'Received', data:topRecv, backgroundColor:'#4ADE80', borderRadius:4 }
+  ], { indexAxis:'y', plugins:{ legend:{position:'top'} }, scales:{ x:{ticks:{callback:function(v){return '$'+Math.round(v/1000)+'K';}}}, y:{grid:{display:false}, ticks:{font:{size:10}}} } });
+
+  // ── Payment Status (doughnut) ──
+  var statuses = {};
+  rows.forEach(function(r) {
+    var s = String(r[cStatus] || 'Unknown');
+    var key = s.indexOf('Fully') >= 0 ? 'Fully Paid' : s.indexOf('Partial') >= 0 ? 'Partial' : 'Unpaid';
+    if (!statuses[key]) statuses[key] = 0;
+    statuses[key]++;
+  });
+  var sNames = Object.keys(statuses);
+  var sValues = sNames.map(function(s) { return statuses[s]; });
+  var sColors = sNames.map(function(s) { return s==='Fully Paid'?'#4ADE80':s==='Partial'?'#FBBF24':'#F87171'; });
+  mk('c-bd-status', 'doughnut', sNames, [
+    { data:sValues, backgroundColor:sColors }
+  ], { cutout:'55%', plugins:{ legend:{position:'right'}, tooltip:{ callbacks:{ label:function(ctx){ return ctx.label+': '+ctx.raw+' contacts'; } } } } });
+
+  // ── Insight box ──
+  var topEntity = entNames[0] || '';
+  var biggestDeal = sorted[0] ? (sorted[0][cName] + ' — $' + Math.round(parseDollar(sorted[0][cCommit])/1000) + 'K') : '';
+  document.getElementById('ins-bizdev').innerHTML = '<strong>Pipeline Summary:</strong> ' + rows.length + ' contacts with <strong>' + fmtUSD(totalCommitted) + '</strong> total pipeline. ' +
+    'Collection rate is <strong>' + rate.toFixed(0) + '%</strong> (' + fmtUSD(totalReceived) + ' received). ' +
+    '<strong>' + topEntity + '</strong> leads by value. Biggest deal: <strong>' + biggestDeal + '</strong>.';
+}
+
 /* ==== FINANCIALS (QuickBooks YTD) ==== */
 function renderFinancials() {
   // ── QuickBooks YTD Data (Jan 1 – Feb 19, 2026) ──
@@ -1642,6 +1860,7 @@ google.charts.setOnLoadCallback(function() {
   sheets.push({ name:'AllTime', fn: function(){ return queryGSheet(ALLTIME_ID, 'Sheet1'); } });
   sheets.push({ name:'FundAllTime', fn: function(){ return queryGSheet(FUND_AT_ID, 'Sheet1'); } });
   sheets.push({ name:'Retainers', fn: function(){ return queryGSheet(RETAINER_ID, 'Sheet1'); } });
+  sheets.push({ name:'BizDev', fn: function(){ return queryGSheet(BIZDEV_ID, 'Contacts'); } });
 
   var statuses = {};
   sheets.forEach(function(s) { statuses[s.name] = 'wait'; });
